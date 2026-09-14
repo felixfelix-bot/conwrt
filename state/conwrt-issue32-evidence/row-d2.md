@@ -1,14 +1,28 @@
 # Triage row D2 — conwrt issue #32 evidence
 
-Verification header (re-confirmed 2026-09-14, mid-session): branch `feat/vpn-provider-setup`,
-HEAD `5275d60dc6159f7f21e76f6eb3214bd4f71105a7`. Branch DID move during this triage
-(`c53ef72` → `5275d60`, another worker's docs-only commit adding
-`state/conwrt-issue32-evidence/drafts/net4sats-raw-commands.md`; `git diff --stat
-c53ef72..5275d60` touches no file cited below). All file:line citations re-resolved
-against `5275d60` after that commit landed.
+Verification header (RE-VERIFIED 2026-09-15, fleet re-check): branch `feat/vpn-provider-setup`,
+HEAD `b30374481b1bbf4e95cbb0e407801fd9465edf86`. The branch has moved three docs-only
+commits since this row was first written (`5275d60` → `b066982` → `1bad35e` → `b303744`;
+`git diff --stat 5275d60..b303744` touches only files under `state/conwrt-issue32-evidence/`
+— this row plus two lan-move/token drafts — and no file cited below; the last commit to
+touch any cited source file is still `b911961`). Every file:line citation was re-spot-checked
+live at `b303744` with `sed -n '<line>p'` on 2026-09-15 and resolves unchanged:
+`scripts/flows/render.py:71` (the `apk add --allow-untrusted` install cmd; `:71-74` spans
+the unpinned curl/scp host block), `render.py:130-140` (`_set_lan_ip_ops`),
+`scripts/flows/_gateway.py:17-20` (TOLLGATE_ALPHA3_URLS), `:22-25` (CONFIGURATIONWIZZARD_URL),
+`:55-62` (tollgate install Step in `gateway_base_steps`), `scripts/flows/__init__.py:29-30`
+(`artifact_urls` field + insertion point), `scripts/flows/net4sats.py:26`
+(`artifact_url=CONFIGURATIONWIZZARD_URL`), `tests/test_flows_net4sats.py:49` (asserts the
+unguarded literal), `scripts/use_cases/tollgate.py:354-358` (sibling same-flaw install
+block), `docs/wizard-bundle.json:352` (net4sats shell) / `:358` (tollgate shell); the
+bundle still carries exactly 60 `apk add --allow-untrusted` occurrences. No stale line
+numbers — this re-check supersedes the original 2026-09-14 `5275d60` verification.
 
-Note on recon context: `~/.hermes/profiles/manager/state/conwrt-issue32-evidence/recon.md`
-does not exist (the directory is absent). The D2 definition used here is from
+Note on recon context (re-checked 2026-09-15): `~/.hermes/profiles/manager/state/conwrt-issue32-evidence/recon.md`
+still does not exist. The directory itself now exists and contains only this row plus
+`.scratch-defect-quotes.md` (D3/D4/D5 verbatim definitions; it independently records that
+`defects-d1-d5.md` is absent everywhere and confirms this runbook as the canonical defect
+source — same conclusion, second worker). The D2 definition used here is from
 `~/.hermes/profiles/manager/state/conwrt-issue32-verification-runbook.md` (issue #32
 defect table, row D2), which matches the issue body verbatim: *"Artifacts installed with
 `apk add --allow-untrusted` and no sha256 verification (blossom.primal.net URLs) —
@@ -41,14 +55,21 @@ supply-chain exposure; AGENTS.md sha256 discipline applies."*
 - **One sequencing constraint:** both fixes regenerate `docs/wizard-bundle.json` via
   `python3 scripts/generate_site.py`. Land both render.py edits on the same branch and
   regenerate once, to avoid bundle churn/regen conflicts.
-- **Docs-only neighbor:** commit `5275d60` (net4sats-raw-commands draft, GAP-noted) is
-  pure documentation; no code interaction with D2.
+- **Docs-only neighbors:** the three evidence commits since the original triage — `5275d60`
+  (`drafts/net4sats-raw-commands.md`), `1bad35e` (`drafts/tollgate-subsection.md`, the
+  CF-WR632AX tollgate LAN-move no-op 192.168.1.1→192.168.1.1 evidence), and `b303744`
+  (`drafts/net4sats-token-location.md`, the literal `10.231.9.1` token-location finding) —
+  are pure documentation feeding the lan_ip worker; no code interaction with D2.
 
 ## Evidence provenance
 
-- All citations resolved against `5275d60dc6159f7f21e76f6eb3214bd4f71105a7` (current HEAD,
-  re-checked after the mid-session branch move; `git diff --stat c53ef72..5275d60` = 1 new
-  docs file only).
+- All citations re-resolved against live HEAD `b30374481b1bbf4e95cbb0e407801fd9465edf86`
+  on 2026-09-15 (branch `feat/vpn-provider-setup` re-checked with
+  `git rev-parse --abbrev-ref HEAD` before writing; every line spot-checked with
+  `sed -n '<line>p'`; `git diff --stat 5275d60..b303744` is docs-only under
+  `state/conwrt-issue32-evidence/` and touches nothing cited here — the original
+  2026-09-14 verification against `5275d60` remains valid for content, superseded
+  only on the HEAD stamp).
 - Rendered recipes extracted live from `docs/wizard-bundle.json` via the runbook's
   extraction command — both CF-WR632AX recipes show the unguarded
   `apk add --allow-untrusted /tmp/<file>` install blocks (and the net4sats flow shows the
