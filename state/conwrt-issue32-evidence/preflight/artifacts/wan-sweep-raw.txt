@@ -1,0 +1,16 @@
+### sweep 192.168.21.0/24 sample + ARP:
+192.168.21.3  used 0/0/0 probes 6 FAILED
+192.168.21.2  used 0/0/0 probes 6 FAILED
+192.168.21.134 lladdr c4:c6:e6:44:17:cd ref 1 used 0/0/0 probes 1 DELAY
+fe80::f8c9:ff:fe7d:2bd1 lladdr fa:c9:00:7d:2b:d1 used 0/0/0 probes 0 STALE
+fe80::a42a:ed98:67f4:3ded lladdr 98:5f:41:52:bc:6e used 0/0/0 probes 0 STALE
+fe80::cc40:37ff:feb1:451a lladdr ce:40:37:b1:45:1a used 0/0/0 probes 0 STALE
+fe80::a055:4bff:fef8:d550 lladdr a2:55:4b:f8:d5:50 used 0/0/0 probes 0 STALE
+fe80::887b:72ff:fed3:e003 lladdr 8a:7b:72:d3:e0:03 used 0/0/0 probes 0 STALE
+fe80::7cec:71ff:fe5e:fff6 lladdr 7e:ec:71:5e:ff:f6 used 0/0/0 probes 0 STALE
+fe80::d0e4:8bff:fe91:5eb9 lladdr d2:e4:8b:91:5e:b9 used 0/0/0 probes 0 STALE
+fe80::c000:d4ff:fe66:8d44 lladdr c2:00:d4:66:8d:44 used 0/0/0 probes 0 STALE
+fe80::ea8f:6fff:fedf:9e11 lladdr e8:8f:6f:df:9e:11 router used 0/0/0 probes 1 STALE
+fe80::a4ff:69ff:fe65:f994 lladdr a6:ff:69:65:f9:94 used 0/0/0 probes 0 STALE
+fe80::9683:c4ff:fed1:5756 lladdr 94:83:c4:d1:57:56 used 0/0/0 probes 0 STALE
+### ARP probe of full range (arping would be slow; ping sweep subset done):

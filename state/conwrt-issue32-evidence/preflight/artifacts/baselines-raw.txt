@@ -1,0 +1,46 @@
+### CMD: uci get network.lan.ipaddr
+192.168.1.1
+exit=0
+### CMD: ip -4 addr show br-lan
+9: br-lan: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP qlen 1000
+    inet 192.168.1.1/24 brd 192.168.1.255 scope global br-lan
+       valid_lft forever preferred_lft forever
+### CMD: uci get system.@system[0].hostname
+tollgate-4SQY
+exit=0
+### CMD: /etc/init.d/nodogsplash status
+running
+exit=0
+### CMD: ps w | grep -i nodog
+29318 root      1700 S    /usr/bin/nodogsplash -c /tmp/etc/nodogsplash_cfg015847.conf -f -s
+grep-exit=0
+### CMD: opkg list-installed | grep -i nodogsplash
+nodogsplash - 5.0.2-r1
+exit=0
+### CMD: ls -l /etc/hotplug.d/iface/ (recursive search for hotplug scripts)
+drwxr-xr-x    2 root     root             3 Apr 13  2025 dhcp
+drwxr-xr-x    2 root     root            38 Apr 13  2025 firmware
+drwxr-xr-x    2 root     root            83 Apr 13  2025 ieee80211
+drwxr-xr-x    1 root     root          3488 Sep 10 08:23 iface
+drwxr-xr-x    2 root     root            30 Apr 13  2025 leds
+drwxr-xr-x    2 root     root             3 Apr 13  2025 neigh
+drwxr-xr-x    2 root     root            32 Apr 13  2025 net
+drwxr-xr-x    2 root     root            36 Apr 13  2025 ntp
+drwxr-xr-x    2 root     root             3 Apr 13  2025 tftp
+-rw-r--r--    1 root     root           155 Apr 13  2025 00-netstate
+-rw-r--r--    1 root     root           498 Apr 13  2025 20-firewall
+-rwxr-xr-x    1 root     root          2869 Sep 13 15:22 95-tollgate-restart
+### CMD: find /etc/hotplug.d -type f
+/etc/hotplug.d/firmware/11-mt76-caldata
+/etc/hotplug.d/ieee80211/05-wifi-migrate
+/etc/hotplug.d/ieee80211/10-wifi-detect
+/etc/hotplug.d/ieee80211/11_fix_wifi_mac
+/etc/hotplug.d/iface/00-netstate
+/etc/hotplug.d/iface/20-firewall
+/etc/hotplug.d/iface/95-tollgate-restart
+/etc/hotplug.d/leds/00-init
+/etc/hotplug.d/net/00-sysctl
+/etc/hotplug.d/ntp/25-dnsmasqsec
+### CMD: ls -l /etc/hotplug.d/iface/95-tollgate-restart
+-rwxr-xr-x    1 root     root          2869 Sep 13 15:22 /etc/hotplug.d/iface/95-tollgate-restart
+exit=0

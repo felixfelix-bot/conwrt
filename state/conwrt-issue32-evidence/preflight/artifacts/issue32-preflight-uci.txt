@@ -1,0 +1,470 @@
+package dhcp
+
+config dnsmasq
+	option domainneeded '1'
+	option boguspriv '1'
+	option filterwin2k '0'
+	option localise_queries '1'
+	option rebind_protection '1'
+	option rebind_localhost '1'
+	option local '/lan/'
+	option domain 'lan'
+	option expandhosts '1'
+	option nonegcache '0'
+	option cachesize '1000'
+	option authoritative '1'
+	option readethers '1'
+	option leasefile '/tmp/dhcp.leases'
+	option resolvfile '/tmp/resolv.conf.d/resolv.conf.auto'
+	option nonwildcard '1'
+	option localservice '1'
+	option ednspacket_max '1232'
+	option filter_aaaa '0'
+	option filter_a '0'
+	list address '/tollgate.lan/192.168.1.1'
+
+config dhcp 'lan'
+	option interface 'lan'
+	option start '100'
+	option limit '150'
+	option leasetime '12h'
+	option dhcpv4 'server'
+	option dhcpv6 'disabled'
+	option ra 'disabled'
+	option ra_slaac '1'
+	list ra_flags 'managed-config'
+	list ra_flags 'other-config'
+	list dhcp_option '6,192.168.1.1'
+
+config dhcp 'wan'
+	option interface 'wan'
+	option ignore '1'
+
+config odhcpd 'odhcpd'
+	option maindhcp '0'
+	option leasefile '/tmp/hosts/odhcpd'
+	option leasetrigger '/usr/sbin/odhcpd-update'
+	option loglevel '4'
+
+config dhcp 'private'
+	option interface 'private'
+	option start '100'
+	option limit '150'
+	option leasetime '12h'
+
+package dropbear
+
+config dropbear 'main'
+	option enable '1'
+	option PasswordAuth 'on'
+	option RootPasswordAuth 'on'
+	option Port '22'
+
+package firewall
+
+config defaults
+	option syn_flood '1'
+	option input 'REJECT'
+	option output 'ACCEPT'
+	option forward 'REJECT'
+
+config zone
+	option name 'lan'
+	list network 'lan'
+	option input 'ACCEPT'
+	option output 'ACCEPT'
+	option forward 'ACCEPT'
+
+config zone
+	option name 'wan'
+	list network 'wan'
+	list network 'wan6'
+	list network 'wwan'
+	option input 'REJECT'
+	option output 'ACCEPT'
+	option forward 'REJECT'
+	option masq '1'
+	option mtu_fix '1'
+
+config forwarding
+	option src 'lan'
+	option dest 'wan'
+
+config rule
+	option name 'Allow-DHCP-Renew'
+	option src 'wan'
+	option proto 'udp'
+	option dest_port '68'
+	option target 'ACCEPT'
+	option family 'ipv4'
+
+config rule
+	option name 'Allow-Ping'
+	option src 'wan'
+	option proto 'icmp'
+	option icmp_type 'echo-request'
+	option family 'ipv4'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-IGMP'
+	option src 'wan'
+	option proto 'igmp'
+	option family 'ipv4'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-DHCPv6'
+	option src 'wan'
+	option proto 'udp'
+	option dest_port '546'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-MLD'
+	option src 'wan'
+	option proto 'icmp'
+	option src_ip 'fe80::/10'
+	list icmp_type '130/0'
+	list icmp_type '131/0'
+	list icmp_type '132/0'
+	list icmp_type '143/0'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-ICMPv6-Input'
+	option src 'wan'
+	option proto 'icmp'
+	list icmp_type 'echo-request'
+	list icmp_type 'echo-reply'
+	list icmp_type 'destination-unreachable'
+	list icmp_type 'packet-too-big'
+	list icmp_type 'time-exceeded'
+	list icmp_type 'bad-header'
+	list icmp_type 'unknown-header-type'
+	list icmp_type 'router-solicitation'
+	list icmp_type 'neighbour-solicitation'
+	list icmp_type 'router-advertisement'
+	list icmp_type 'neighbour-advertisement'
+	option limit '1000/sec'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-ICMPv6-Forward'
+	option src 'wan'
+	option dest '*'
+	option proto 'icmp'
+	list icmp_type 'echo-request'
+	list icmp_type 'echo-reply'
+	list icmp_type 'destination-unreachable'
+	list icmp_type 'packet-too-big'
+	list icmp_type 'time-exceeded'
+	list icmp_type 'bad-header'
+	list icmp_type 'unknown-header-type'
+	option limit '1000/sec'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-IPSec-ESP'
+	option src 'wan'
+	option dest 'lan'
+	option proto 'esp'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-ISAKMP'
+	option src 'wan'
+	option dest 'lan'
+	option dest_port '500'
+	option proto 'udp'
+	option target 'ACCEPT'
+
+config include 'nodogsplash'
+	option type 'script'
+	option path '/usr/lib/nodogsplash/restart.sh'
+
+config rule 'tollgate_protocol'
+	option name 'Allow-TollGate-Protocol'
+	option src 'wan'
+	option proto 'tcp'
+	option dest_port '2121'
+	option target 'ACCEPT'
+
+config rule 'tollgate_in'
+	option name 'Allow-TollGate-In'
+	option src 'lan'
+	option proto 'tcp'
+	option dest_port '2121'
+	option target 'ACCEPT'
+
+config zone 'private_zone'
+	option name 'private'
+	option network 'private'
+	option input 'ACCEPT'
+	option output 'ACCEPT'
+	option forward 'ACCEPT'
+
+config forwarding 'private_forwarding'
+	option src 'private'
+	option dest 'wan'
+
+package luci
+
+config core 'main'
+	option lang 'auto'
+	option mediaurlbase '/luci-static/bootstrap'
+	option resourcebase '/luci-static/resources'
+	option ubuspath '/ubus/'
+
+config extern 'flash_keep'
+	option uci '/etc/config/'
+	option dropbear '/etc/dropbear/'
+	option openvpn '/etc/openvpn/'
+	option passwd '/etc/passwd'
+	option opkg '/etc/opkg.conf'
+	option firewall '/etc/firewall.user'
+	option uploads '/lib/uci/upload/'
+
+config internal 'languages'
+
+config internal 'sauth'
+	option sessionpath '/tmp/luci-sessions'
+	option sessiontime '3600'
+
+config internal 'ccache'
+	option enable '1'
+
+config internal 'themes'
+	option Bootstrap '/luci-static/bootstrap'
+	option BootstrapDark '/luci-static/bootstrap-dark'
+	option BootstrapLight '/luci-static/bootstrap-light'
+
+config internal 'apply'
+	option rollback '90'
+	option holdoff '4'
+	option timeout '5'
+	option display '1.5'
+
+config internal 'diag'
+	option dns 'openwrt.org'
+	option ping 'openwrt.org'
+	option route 'openwrt.org'
+
+package network
+
+config interface 'loopback'
+	option device 'lo'
+	option proto 'static'
+	option ipaddr '127.0.0.1'
+	option netmask '255.0.0.0'
+
+config globals 'globals'
+	option ula_prefix 'fdd0:2b17:d33c::/48'
+
+config device
+	option name 'br-lan'
+	option type 'bridge'
+	list ports 'lan1'
+	list ports 'lan2'
+	list ports 'lan3'
+	list ports 'lan4'
+	list ports 'lan5'
+
+config interface 'lan'
+	option device 'br-lan'
+	option proto 'static'
+	option ipaddr '192.168.1.1'
+	option netmask '255.255.255.0'
+	option ip6assign '0'
+	list dns '1.1.1.1'
+	list dns '1.0.0.1'
+	option domain 'lan'
+
+config interface 'wan'
+	option device 'eth1'
+	option proto 'dhcp'
+
+config interface 'wan6'
+	option device 'eth1'
+	option proto 'dhcpv6'
+
+config interface 'private'
+	option proto 'static'
+	option device 'br-private'
+	option ipaddr '192.168.2.1'
+	option netmask '255.255.255.0'
+
+config device 'private_bridge'
+	option type 'bridge'
+	option name 'br-private'
+
+config interface 'wwan'
+	option proto 'dhcp'
+
+package nodogsplash
+
+config nodogsplash
+	option enabled '1'
+	option fwhook_enabled '1'
+	option gatewayinterface 'br-lan'
+	option gatewayname 'tollgate-4SQY'
+	option maxclients '250'
+	option preauthidletimeout '30'
+	option authidletimeout '3600'
+	option sessiontimeout '86400'
+	option checkinterval '600'
+	list authenticated_users 'allow all'
+	list authenticated_users 'block to 10.0.0.0/8'
+	list authenticated_users 'block to 172.16.0.0/12'
+	list authenticated_users 'block to 192.168.0.0/16'
+	list users_to_router 'allow tcp port 22'
+	list users_to_router 'allow tcp port 23'
+	list users_to_router 'allow tcp port 53'
+	list users_to_router 'allow udp port 53'
+	list users_to_router 'allow udp port 67'
+	list users_to_router 'allow tcp port 2121'
+	list users_to_router 'allow tcp port 2050'
+	list users_to_router 'allow tcp port 2051'
+	list users_to_router 'allow tcp port 80'
+	list users_to_router 'allow tcp port 8080'
+	list users_to_router 'allow tcp port 8090'
+	option gatewaydomainname 'tollgate.lan'
+	option gatewayport '2050'
+	option clientid 'mac'
+
+package rpcd
+
+config rpcd
+	option socket '/var/run/ubus/ubus.sock'
+	option timeout '30'
+
+config login
+	option username 'root'
+	option password '$p$root'
+	list read '*'
+	list write '*'
+
+package system
+
+config system
+	option hostname 'tollgate-4SQY'
+	option timezone 'UTC'
+	option ttylogin '0'
+	option log_size '128'
+	option urandom_seed '0'
+
+config timeserver 'ntp'
+	option enabled '1'
+	option enable_server '0'
+	list server '0.openwrt.pool.ntp.org'
+	list server '1.openwrt.pool.ntp.org'
+	list server '2.openwrt.pool.ntp.org'
+	list server '3.openwrt.pool.ntp.org'
+
+package ubihealthd
+
+package ubootenv
+
+config ubootenv
+	option dev '/dev/mmcblk0p1'
+	option offset '0x0'
+	option envsize '0x80000'
+
+package uhttpd
+
+config uhttpd 'main'
+	option redirect_https '0'
+	option home '/www'
+	option rfc1918_filter '1'
+	option max_requests '3'
+	option max_connections '100'
+	option cgi_prefix '/cgi-bin'
+	list lua_prefix '/cgi-bin/luci=/usr/lib/lua/luci/sgi/uhttpd.lua'
+	option script_timeout '60'
+	option network_timeout '30'
+	option http_keepalive '20'
+	option tcp_keepalive '1'
+	option ubus_prefix '/ubus'
+	list listen_http '0.0.0.0:8080'
+	list listen_http '[::]:8080'
+	list listen_https '0.0.0.0:443'
+	list listen_https '[::]:443'
+	option cert '/etc/uhttpd.crt'
+	option key '/etc/uhttpd.key'
+	option commonname 'TollGate'
+
+config cert 'defaults'
+	option days '397'
+	option key_type 'ec'
+	option bits '2048'
+	option ec_curve 'P-256'
+	option country 'ZZ'
+	option state 'Somewhere'
+	option location 'Unknown'
+	option commonname 'OpenWrt'
+
+config uhttpd 'portal'
+	list listen_http '0.0.0.0:2051'
+	list listen_http '[::]:2051'
+	option home '/etc/tollgate/tollgate-captive-portal-site'
+	option rfc1918_filter '0'
+	option no_dirlists '1'
+
+package wireless
+
+config wifi-device 'radio0'
+	option type 'mac80211'
+	option path 'platform/soc/18000000.wifi'
+	option band '2g'
+	option channel '1'
+	option htmode 'HE20'
+	option disabled '0'
+
+config wifi-iface 'default_radio0'
+	option device 'radio0'
+	option network 'lan'
+	option mode 'ap'
+	option ssid 'tollgate-4SQY'
+	option encryption 'none'
+	option name 'tollgate_2g_open'
+	option disabled '0'
+
+config wifi-device 'radio1'
+	option type 'mac80211'
+	option path 'platform/soc/18000000.wifi+1'
+	option band '5g'
+	option channel '36'
+	option htmode 'HE80'
+	option disabled '0'
+
+config wifi-iface 'default_radio1'
+	option device 'radio1'
+	option network 'lan'
+	option mode 'ap'
+	option ssid 'tollgate-4SQY'
+	option encryption 'none'
+	option name 'tollgate_5g_open'
+	option disabled '0'
+
+config wifi-iface 'private_radio0'
+	option device 'radio0'
+	option network 'private'
+	option mode 'ap'
+	option ssid 'c08r4d0r-E70D'
+	option encryption 'psk2+ccmp'
+	option key '<REDACTED-WIFI-PSK>'
+	option disabled '0'
+
+config wifi-iface 'private_radio1'
+	option device 'radio1'
+	option network 'private'
+	option mode 'ap'
+	option ssid 'c08r4d0r-E70D'
+	option encryption 'psk2+ccmp'
+	option key '<REDACTED-WIFI-PSK>'
+	option disabled '0'
+

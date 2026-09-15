@@ -1,0 +1,45 @@
+### CMD: cat /tmp/dhcp.leases
+1789461582 00:e0:4c:68:3d:2d 192.168.1.106 CobradorWave 01:00:e0:4c:68:3d:2d
+### CMD: ip neigh show (all)
+192.168.1.106 dev br-lan lladdr 00:e0:4c:68:3d:2d ref 1 used 0/0/0 probes 1 DELAY
+192.168.21.134 dev eth1 lladdr c4:c6:e6:44:17:cd used 0/0/0 probes 1 STALE
+fe80::f8c9:ff:fe7d:2bd1 dev eth1 lladdr fa:c9:00:7d:2b:d1 used 0/0/0 probes 0 STALE
+fe80::a42a:ed98:67f4:3ded dev eth1 lladdr 98:5f:41:52:bc:6e used 0/0/0 probes 0 STALE
+fe80::cc40:37ff:feb1:451a dev eth1 lladdr ce:40:37:b1:45:1a used 0/0/0 probes 0 STALE
+fe80::a055:4bff:fef8:d550 dev eth1 lladdr a2:55:4b:f8:d5:50 used 0/0/0 probes 0 STALE
+fe80::887b:72ff:fed3:e003 dev eth1 lladdr 8a:7b:72:d3:e0:03 used 0/0/0 probes 0 STALE
+fe80::7cec:71ff:fe5e:fff6 dev eth1 lladdr 7e:ec:71:5e:ff:f6 used 0/0/0 probes 0 STALE
+fe80::4967:7349:a4f2:6da7 dev br-lan lladdr 00:e0:4c:68:3d:2d used 0/0/0 probes 1 STALE
+fe80::d0e4:8bff:fe91:5eb9 dev eth1 lladdr d2:e4:8b:91:5e:b9 used 0/0/0 probes 0 STALE
+fe80::c000:d4ff:fe66:8d44 dev eth1 lladdr c2:00:d4:66:8d:44 used 0/0/0 probes 0 STALE
+fe80::ea8f:6fff:fedf:9e11 dev eth1 lladdr e8:8f:6f:df:9e:11 router used 0/0/0 probes 1 STALE
+fe80::a4ff:69ff:fe65:f994 dev eth1 lladdr a6:ff:69:65:f9:94 used 0/0/0 probes 0 STALE
+fe80::9683:c4ff:fed1:5756 dev eth1 lladdr 94:83:c4:d1:57:56 used 0/0/0 probes 0 STALE
+### CMD: iwinfo assoclist (radio0 + radio1)
+phy0-ap0  ESSID: "tollgate-4SQY"
+          Access Point: 94:83:C4:D1:57:59
+phy0-ap1  ESSID: "c08r4d0r-E70D"
+          Access Point: 96:83:C4:D1:57:59
+phy1-ap0  ESSID: "tollgate-4SQY"
+          Access Point: 94:83:C4:D1:57:5A
+phy1-ap1  ESSID: "c08r4d0r-E70D"
+          Access Point: 96:83:C4:D1:57:5A
+### CMD: wifi config SSIDs
+wireless.radio0.htmode='HE20'
+wireless.radio0.disabled='0'
+wireless.default_radio0.mode='ap'
+wireless.default_radio0.ssid='tollgate-4SQY'
+wireless.default_radio0.disabled='0'
+wireless.radio1.htmode='HE80'
+wireless.radio1.disabled='0'
+wireless.default_radio1.mode='ap'
+wireless.default_radio1.ssid='tollgate-4SQY'
+wireless.default_radio1.disabled='0'
+wireless.private_radio0.mode='ap'
+wireless.private_radio0.ssid='c08r4d0r-E70D'
+wireless.private_radio0.disabled='0'
+wireless.private_radio1.mode='ap'
+wireless.private_radio1.ssid='c08r4d0r-E70D'
+wireless.private_radio1.disabled='0'
+### CMD: grep 40:a5:ef (COMFAST OUI) anywhere
+no COMFAST MAC in device neighbor table

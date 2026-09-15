@@ -1,0 +1,28 @@
+### CMD: date -u
+Tue Sep 15 02:02:11 UTC 2026
+### CMD: date +%s
+1789437731
+### CMD: /etc/init.d/sysntpd status
+running
+exit=0
+### CMD: /etc/init.d/sysntpd enabled
+sysntpd-ON
+### CMD: ps w | grep -i ntp
+ 2376 root      2852 S    {ntpd} /sbin/ujail -t 5 -n ntpd -U ntp -G ntp -C /etc/capabilities/ntpd.json -c -u -r /bin/ubus -r /usr/b
+ 2447 ntp       1336 S    /usr/sbin/ntpd -n -N -S /usr/sbin/ntpd-hotplug -p 0.openwrt.pool.ntp.org -p 1.openwrt.pool.ntp.org -p 2.o
+grep-exit=0
+### CMD: uci show system | grep timeserver
+system.ntp=timeserver
+exit=0
+### CMD: logread | grep -i ntp | tail -5
+### CMD: uci show system | head -20
+system.@system[0]=system
+system.@system[0].hostname='tollgate-4SQY'
+system.@system[0].timezone='UTC'
+system.@system[0].ttylogin='0'
+system.@system[0].log_size='128'
+system.@system[0].urandom_seed='0'
+system.ntp=timeserver
+system.ntp.enabled='1'
+system.ntp.enable_server='0'
+system.ntp.server='0.openwrt.pool.ntp.org' '1.openwrt.pool.ntp.org' '2.openwrt.pool.ntp.org' '3.openwrt.pool.ntp.org'
