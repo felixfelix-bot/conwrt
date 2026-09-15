@@ -1,0 +1,133 @@
+=================================================================
+conwrt Issue 32 — CF-WR632AX Reachability Preflight
+Date: 2026-09-15 (worker-base, fleet offload)
+Task: Power on CF-WR632AX, verify SSH + OpenWrt version
+=================================================================
+
+VERDICT: BLOCKED — CF-WR632AX NOT FOUND ON ANY REACHABLE NETWORK
+
+The only device reachable at 192.168.1.1 is a GL.iNet GL-MT6000 (Flint 2),
+NOT the COMFAST CF-WR632AX that issue #32 targets.
+
+=================================================================
+1. NETWORK DISCOVERY
+=================================================================
+
+Interfaces on worker host:
+  enx00e04c683d2d — USB ethernet, carrier UP, assigned 192.168.1.2/24
+  enp0s31f6        — built-in ethernet, 192.168.2.21/24
+  wlp58s0          — WiFi, 192.168.2.33/24
+
+Ping sweep of 192.168.1.0/24 (nmap -sn):
+  192.168.1.1   alive (0.0014s latency)
+  192.168.1.2   alive (this workstation)
+  No other hosts.
+
+ARP table for 192.168.1.1:
+  192.168.1.1 lladdr 94:83:c4:d1:57:58 REACHABLE (dev enx00e04c683d2d)
+
+MAC OUI analysis:
+  94:83:C4 = GL Technologies (GL.iNet) — matches models/glinet-mt6000.json
+  CF-WR632AX expects 40:A5:EF (COMFAST) per models/comfast-cf-wr632ax.json
+  => MISMATCH. Per AGENTS.md: MAC OUI = ground truth.
+
+WiFi scan (nmcli dev wifi list):
+  Only one AP visible: E8:8F:6F:E7:DB:84 "EnterSSID-2.4GHz"
+  No COMFAST SSID, no CF-WR632AX AP.
+
+Router-side neighbor table + DHCP leases (from GL-MT6000 @ 192.168.1.1):
+  No 40:A5:EF MAC anywhere in its neighbor table or DHCP leases.
+  Only client: this workstation (00:e0:4c:68:3d:2d = CobridorWave).
+
+=================================================================
+2. SSH ACCESS TO 192.168.1.1 (wrong device — GL-MT6000)
+=================================================================
+
+Host key changed since last known_hosts entry (line 107).
+Cleared with ssh-keygen -R 192.168.1.1.
+New host key: SHA256:fupkqrYr2mJwrnpOJMgQQNL/GBo1kGWJ/8kq5y/2DTg
+
+Passwords tested:
+  RETRIEVE_FROM_VAULT  (kit routers.env ROUTER_PASSWORD) — FAILED
+  ""           (empty, default OpenWrt)          — FAILED
+  password                                     — SUCCESS
+  (admin, root, openwrt, tollgate, comfast, etc. — not tested after success)
+
+SSH session to 192.168.1.1 (password: "password"):
+
+  root@TollGate:~# cat /tmp/sysinfo/board_name
+  glinet,gl-mt6000
+
+  root@TollGate:~# cat /tmp/sysinfo/model
+  GL.iNet GL-MT6000
+
+  root@TollGate:~# cat /etc/openwrt_release
+  DISTRIB_ID='OpenWrt'
+  DISTRIB_RELEASE='25.12.5'
+  DISTRIB_REVISION='r33051-f5dae5ece4'
+  DISTRIB_TARGET='mediatek/filogic'
+  DISTRIB_ARCH='aarch64_cortex-a53'
+  DISTRIB_DESCRIPTION='OpenWrt 25.12.5 r33051-f5dae5ece4'
+  DISTRIB_TAINTS=''
+
+  root@TollGate:~# cat /proc/mtd
+  dev:    size   erasesize  name
+  (empty — eMMC device, not SPI-NAND; CF-WR632AX would show MTD partitions)
+
+  root@TollGate:~# uname -a
+  Linux TollGate 6.12.94 #0 SMP Mon Jun 29 12:59:20 2026 aarch64 GNU/Linux
+
+  MAC: 94:83:c4:d1:57:58 (br-lan), 94:83:c4:d1:57:56 (eth1/WAN)
+
+=================================================================
+3. CF-WR632AX SEARCH — NOT FOUND
+=================================================================
+
+The actual COMFAST CF-WR632AX (issue #32 target) was not found:
+  - Not on 192.168.1.0/24 (only GL-MT6000 at .1)
+  - Not visible in WiFi scan (no COMFAST AP)
+  - Not in GL-MT6000's neighbor table or DHCP leases
+  - No 40:A5:EF MAC anywhere in host ARP table
+  - No serial adapter connected (only Sierra Wireless EM7455 LTE modem ttyUSB devices)
+  - No other subnets reachable from this workstation that might host it
+
+The CF-WR632AX appears to be powered off or not physically present.
+
+Per AGENTS.md: "The COMFAST CF-WR632AX was explored and a model JSON was
+created, but no specimen-level inventory was recorded and no SSH key was
+installed. A factory reset wiped the overlay... and the device became
+permanently inaccessible."
+
+The runbook staged 2026-09-01 said "device OFF".
+
+=================================================================
+4. ATTEMPTS SUMMARY
+=================================================================
+
+| Attempt                          | Result                                    |
+|----------------------------------|-------------------------------------------|
+| Ping sweep 192.168.1.0/24        | Only 192.168.1.1 (GL-MT6000) alive        |
+| WiFi scan for COMFAST AP         | No COMFAST SSID found                     |
+| ARP table for 40:A5:EF OUI       | Not present                               |
+| Router-side neighbor/DHCP scan   | No 40:A5:EF MAC                           |
+| SSH to 192.168.1.1 (RETRIEVE_FROM_VAULT) | Permission denied                         |
+| SSH to 192.168.1.1 (empty pw)    | Permission denied                         |
+| SSH to 192.168.1.1 (password)    | SUCCESS — but device is GL-MT6000         |
+| Serial console                   | UNAVAILABLE (no UART adapter connected)   |
+| Check other subnets              | 192.168.2.0/24 is upstream, no routers    |
+
+=================================================================
+5. BLOCKER — OPERATOR ACTION REQUIRED
+=================================================================
+
+The CF-WR632AX cannot be reached. To proceed with issue #32:
+
+  1. Physically locate the CF-WR632AX device
+  2. Connect it to the test network (USB-C power + ethernet to enx interface)
+  3. Power it on and wait for boot (~30s)
+  4. Verify it appears on 192.168.1.0/24 with OUI 40:A5:EF
+  5. If factory-fresh OpenWrt: SSH with empty password
+  6. If previously configured: provide the root password or connect serial
+
+No recipe work has been started. This is a preflight reachability check only.
+=================================================================
