@@ -1,0 +1,150 @@
+Validation live transcript — 2026-09-15 ~02:29-02:31 UTC, worker-heavy (fleet offload)
+=====================================================================================
+
+Independent acceptance-criteria audit of run-log.md + artifacts/ (conwrt issue 32
+preflight). ALL device commands were read-only (cat, uci get, uci export, ls, status,
+opkg list-installed, ping, one HTTP GET to :2121). No config change was made on any
+device. Device access used the kit's ~/physical-router-test-automation/mint-health/
+routers.env ROUTER_PASSWORD — the same credential section 9 used. The password value
+is NOT recorded in this transcript.
+
+Validator host: c03rad0r (NTP-synced). Device: root@192.168.1.1 (GL-MT6000).
+
+V0. Validator environment
+-------------------------
+$ git -C /home/c03rad0r/repos/conwrt rev-parse HEAD   (branch feat/vpn-provider-setup)
+d01ae2ff4477a4dae68548fa14ee8e7d6208c6d8      working tree clean
+$ pgrep -af net4sats-wizard
+(no actual wizard process — only the pgrep wrapper's own command line matched)
+$ date -u
+2026-09-15 02:29:30 UTC (epoch 1789439370) at validation start
+
+V1. Artifact hash re-verification (manager-state evidence dir)
+--------------------------------------------------------------
+$ sha256sum artifacts/*.txt   →  all match the run-log section 9.2 / addendum B6 manifest:
+351f2c72baec1151c94964687fe19fa55b549e3180e69e6334c05eb91a71b34e  baselines-raw.txt
+f89d70a3872cd23cf37db390f11dde7284976f9da78a78efe65d38f1da4a9b12  clock-raw.txt
+8ab8d447057e467c8a14c867343205623831f2850f94433b2e49feb4d03c981b  downstream-raw.txt
+e9f043000a3443b4a9eba7c051402d0d4033714662357e3a3b305a4a1cc223c0  issue32-preflight-mtd.txt
+9b5ec28cbd460d683bef09770ac7f3f417a77566c31b868add119dd53ff446b4  issue32-preflight-network.txt
+d78c3c897ed95f34ef99e806e0c8f06f01f1c43061f14b2006ef062014d40da8  issue32-preflight-packages.txt
+8bf1915ab517283c52f8f5dd2beadd8b842fc3074e52a97704a7ac8182ed5693  issue32-preflight-partitions.txt
+49b8086df49b2d1a60a0d333c3341f34090ec16dcd9d7504a4d5eece39800c53  issue32-preflight-uci.txt
+89a45e3b7e83ba596e3d849c75f6430c6c7699b59a4f65f6bfe13453708b956b  upstream-raw.txt
+e3ff84ffa4f6c944169e185904c1862aa75b3609c4e12d757449953d73181204  wan-sweep-raw.txt
+
+Line counts match the manifest: uci 470, mtd 1 (header only), partitions 13,
+packages 193, network 50.
+
+V2. Repo mirror consistency (conwrt state/conwrt-issue32-evidence/, commit d01ae2f)
+------------------------------------------------------------------------------------
+$ diff <repo>/run-log.md <manager-state>/run-log.md                  → IDENTICAL
+$ diff <repo>/addendum-20260915.md <manager-state>/addendum-20260915.md → IDENTICAL
+$ sha256sum <repo>/artifacts/*.txt
+→ 9 of 10 byte-identical to manager-state. Repo uci copy:
+   b4bda1460b73eefa6758b7c3bde1bd97c14b912cfec417e7542594b8f8df3d15
+   = EXACTLY the redacted-copy sha256 documented in run-log section 9.2. Redaction is
+   exactly 2 lines (459, 468): option key '<REDACTED-WIFI-PSK>'. The third
+   "option key" line in the export (line 397, uhttpd section) is a file PATH
+   ('/etc/uhtt...'), not a credential — the "no other credentials" claim holds.
+
+V3. Live device re-verification (read-only SSH)
+----------------------------------------------
+$ ssh root@192.168.1.1 'cat /etc/openwrt_release'          ← FULL 7-line verbatim capture
+DISTRIB_ID='OpenWrt'
+DISTRIB_RELEASE='24.10.1'
+DISTRIB_REVISION='r28597-0425664679'
+DISTRIB_TARGET='mediatek/filogic'
+DISTRIB_ARCH='aarch64_cortex-a53'
+DISTRIB_DESCRIPTION='OpenWrt 24.10.1 r28597-0425664679'
+DISTRIB_TAINTS=''
+(exit 0)
+→ 24.10.1, NOT 25.12.4. Confirms run-log section 9.1. The two lines the bundle's
+  `| head -5` excerpts omitted (DISTRIB_DESCRIPTION, DISTRIB_TAINTS) are captured here.
+
+$ ssh root@192.168.1.1 'cat /tmp/sysinfo/board_name; cat /tmp/sysinfo/model'
+glinet,gl-mt6000
+GL.iNet GL-MT6000
+
+$ uci get system.@system[0].hostname      → tollgate-4SQY
+$ cat /proc/sys/kernel/hostname           → TollGate        (runtime/uci split confirmed)
+$ uci get network.lan.ipaddr              → 192.168.1.1
+$ /etc/init.d/nodogsplash status          → running
+$ opkg list-installed | grep -i nodogsplash → nodogsplash - 5.0.2-r1
+$ ls -l /etc/hotplug.d/iface/95-tollgate-restart
+-rwxr-xr-x    1 root root          2869 Sep 13 15:22 /etc/hotplug.d/iface/95-tollgate-restart
+→ Every baseline value (run-log section 9.2 B1-B4) re-confirmed byte-for-byte live.
+
+V4. Clock re-measure (2026-09-15 ~02:30 UTC)
+-------------------------------------------
+$ ssh root@192.168.1.1 'date -u; date +%s'
+Tue Sep 15 02:29:57 UTC 2026
+1789439397
+$ date +%s.%N on host immediately after the SSH returned
+1789439408.845
+→ device − host ≈ −11.8 s (single-sided bound; SSH round trip ≈ 0.2 s)
+→ Drift persists vs the recorded ≈ −11 s (section 9.3). NO-GO unchanged.
+
+$ ssh root@192.168.1.1 'ping -c 2 -W 2 8.8.8.8'
+2 packets transmitted, 0 packets received, 100% packet loss
+→ Upstream still dead — section 9.3's root cause unchanged.
+
+$ curl -s http://192.168.1.1:2121/ | head -c 300
+{"kind":21023,"id":"83856a67664b30638fd3079e95c6c892f4c76a94c67020bc641e713873a4e786",
+ "pubkey":"0eacd12cc64dd0fcda90792911392be8af1edd8c5c5bebf4eb2ebe5cf3e2e821",
+ "created_at":1789439708,"tags":[["level","warning"],["code","no-reachable-mints"]],
+ "content":"TollGate is initializing. No reachable mints...
+→ TollGate API still degraded (kind:21023), as section 9.3 recorded.
+
+V5. Epoch authenticity check on the recorded drift samples
+----------------------------------------------------------
+$ date -u -d @1789437776   → Tue Sep 15 02:02:56 UTC 2026
+$ date -u -d @1789437765   → Tue Sep 15 02:02:45 UTC 2026
+→ The recorded sample epochs decode to 2026-09-15 02:02 UTC — consistent with the
+  recorded device `date -u` (02:02:11, epoch 1789437731 per clock-raw.txt) plus ~45 s
+  of sampling delay. Internally consistent, not fabricated.
+
+V6. Negative check — no config change left behind
+-------------------------------------------------
+$ ssh root@192.168.1.1 'uci export' > /tmp/live-uci-export.txt ; sha256sum
+49b8086df49b2d1a60a0d333c3341f34090ec16dcd9d7504a4d5eece39800c53
+→ BYTE-IDENTICAL to the pinned baseline artifact issue32-preflight-uci.txt.
+
+$ ssh root@192.168.1.1 'ls -lt /etc/config | head -5'
+dhcp        Sep 14 15:51
+nodogsplash Sep 14 15:51
+system      Sep 14 15:51
+wireless    Sep 14 15:51
+firewall    Sep 14 15:44
+→ Newest /etc/config mtime PREDATES the preflight window (2026-09-15 ~02:00 UTC;
+  device timezone is UTC) — no uci commit happened during or after the preflight.
+
+$ ssh root@192.168.1.1 'ls -l /etc/dropbear/'
+-rw------- 83  root root Apr 13  2025 dropbear_ed25519_host_key
+-rw------- 805 root root Apr 13  2025 dropbear_rsa_host_key
+authorized_keys ABSENT
+→ No SSH key was left on the device.
+
+V7. BLOCKED-record completeness checks
+--------------------------------------
+- routers.env ROUTER_PASSWORD: present, 11 chars. Compared against all 16 section 2.1
+  guesses WITHOUT printing the value: matches NONE of them → confirms the addendum's
+  "a credential not tried in section 2.1".
+- All 8 section 2.2 key files exist on this workstation: ~/.ssh/id_ed25519, id_rsa,
+  tollgate, remote_worker, id_dq05, id_preview_deploy, preview_deploy_ed25519,
+  preview_vps_deploy.
+- Historical COMFAST-MAC search ('40:a5:ef' across manager state): found ONLY in
+  conwrt-issue32-verification-runbook.md as PLANNED template values (tested_hardware
+  example keys), not device sightings. Runbook line 3: "Staged: 2026-09-01 · prep only
+  (device OFF)" → corroborates section 9.1's "powered off or off-site" conclusion.
+- Repo commits 5275d60..d01ae2f touch only state/conwrt-issue32-evidence/** (docs-only)
+  — no recipe/wizard execution in repo history.
+
+V8. Reachability (validator side)
+---------------------------------
+$ ip neigh show 192.168.1.1
+192.168.1.1 dev enx00e04c683d2d lladdr 94:83:c4:d1:57:58 STALE
+$ ping -c 2 -W 2 192.168.1.1 → 100% loss (Destination Port Unreachable — matches section 1.1)
+→ ARP OUI 94:83:c4 (GL.iNet) matches the identity evidence in section 9.1.
+
+End of validation transcript. No device configuration was touched at any point.

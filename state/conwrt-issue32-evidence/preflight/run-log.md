@@ -600,3 +600,113 @@ Recipes cannot proceed with the current clock as-is. Required before proceeding:
 4. AND resolve the device-identity mismatch: the CF-WR632AX (OUI 40:A5:EF, board_name
    comfast,cf-wr632ax, SPI-NAND /proc/mtd, 25.12.4, apk) must be located and confirmed as
    the device under test. Issue-32 recipes must NOT be run on the GL-MT6000.
+
+---
+
+## 12. VALIDATION (2026-09-15, worker-heavy — independent acceptance-criteria audit)
+
+Auditor: worker-heavy (fleet offload), independent of the worker that produced §9–§11.
+Method: hash re-verification of all 10 artifacts, repo-mirror diff, live read-only SSH
+re-verification of every baseline claim, live clock re-measure, live `uci export` diff
+against the pinned baseline. **No device configuration was touched.** Full transcript:
+`artifacts/validation-live-20260915.txt` (validator's own raw captures, incl. the full
+verbatim `cat /etc/openwrt_release` output the bundle only excerpts).
+
+### Checklist (a)–(e)
+
+**(a) Reachability + OpenWrt 25.12.4 evidence — FAIL**
+- Reachability + successful SSH command capture: PASS — §9/§10 contains live
+  command+output captures; re-verified live by the auditor (2026-09-15 ~02:29 UTC).
+- Verbatim `cat /etc/openwrt_release`: FAIL — the bundle contains only
+  `| head -5` excerpts (run-log:462-466, addendum:18-22), not the verbatim full
+  output. The auditor captured the missing 7-line full output live
+  (validation-live-20260915.txt §V3); the two omitted lines are
+  `DISTRIB_DESCRIPTION='OpenWrt 24.10.1 r28597-0425664679'` and `DISTRIB_TAINTS=''`.
+- OpenWrt 25.12.4: FAIL — the device runs **24.10.1** (live-confirmed twice). The
+  25.12.4 leg of this criterion is unsatisfiable on the hardware present. The bundle
+  flags this correctly and prominently (§9.1), but the criterion as written is not met.
+
+**(b) Recovery procedure genuinely TESTED — FAIL**
+- No recovery path was exercised on hardware. §7's own table says
+  "Config snapshot + revert: NOT TESTED (no SSH access)"; Option C (§6) is written
+  as copy-pasteable numbered commands with expected output but was never run — no
+  observed revert-verification output exists anywhere in the bundle.
+- Notably, SSH access was regained mid-task (§9) via the kit's `routers.env`
+  ROUTER_PASSWORD, at which point the benign-change/revert test *could* have been
+  executed; the §9 worker instead stayed read-only (defensible — it is the wrong
+  device — but the deliverable therefore still lacks the tested path).
+- Re-issued step needed: run the snapshot → benign change (`uci set` + `uci get`
+  read-back) → revert → re-read procedure on whichever device the owner designates.
+  It cannot be run against the CF-WR632AX until that device is located.
+
+**(c) Baseline capture — PASS (with two caveats)**
+- All 5 required artifacts present, non-empty, hash-pinned, and live-verified:
+  uci export (470 lines, sha256 49b8086…), package list (193 lines), /etc/config/network
+  (50 lines), /proc/mtd (1 line — see caveat), plus /proc/partitions supplement (13 lines).
+  Auditor's live `uci export` is BYTE-IDENTICAL to the pinned artifact.
+- LAN IP, hostname (both uci and runtime values), nodogsplash installed AND running,
+  hotplug script existence — each recorded with command + output (§9.2 B1–B4,
+  artifacts/baselines-raw.txt) and each re-confirmed live by the auditor.
+- Caveat 1: the `/proc/mtd` artifact is header-only (31 bytes) — this is the genuine
+  full output on an eMMC device, not a capture failure, and is properly explained and
+  supplemented with `/proc/partitions` (mmcblk0p1–p7).
+- Caveat 2 (scope): these are **GL-MT6000 baselines**. They are genuine and complete
+  for the device they came from, but they are NOT CF-WR632AX preflight baselines and
+  must not be used as issue-32 comparison points. The addendum says exactly this.
+
+**(d) Clock — PASS**
+- `date -u` (02:02:11 UTC 2026), NTP status (sysntpd running + enabled, zero sync
+  log lines, root-cause probes: DNS dead, 8.8.8.8 100% loss, WAN gateway dead),
+  numeric drift (3 bounded samples, ≈ −11 s), explicit **NO-GO** with concrete
+  re-measure criteria (|drift| ≤ 5 s) — all present (§9.3, artifacts/clock-raw.txt,
+  upstream-raw.txt).
+- Auditor re-measured live ~28 min later: drift ≈ −11.8 s, upstream still dead,
+  TollGate API still kind:21023 — the NO-GO stands and the root cause is confirmed.
+- The recorded drift sample epochs decode to 2026-09-15 02:02 UTC — internally
+  consistent with the captured `date -u`/epoch output (not fabricated).
+
+**(e) Negative check — PASS**
+- No recipe/wizard work started: repo commits 5275d60..d01ae2f touch only
+  `state/conwrt-issue32-evidence/**` (docs); no recipe execution in history; no
+  wizard process running.
+- No permanent config change left behind: auditor's live `uci export` is
+  byte-identical to the preflight baseline (sha256 49b8086…); newest `/etc/config`
+  mtime (Sep 14 15:51, UTC device clock) predates the preflight window; no
+  authorized_keys present in /etc/dropbear; hostname never modified (no pf-tmp
+  residue anywhere).
+
+### BLOCKED-report completeness (task asks: does the §1–§8 BLOCKED record contain every attempt and the current hardware state?)
+- **Attempts: the original §1–§8 record is incomplete in exactly one respect** — it
+  omits the credential source that actually worked (the kit's
+  `routers.env` ROUTER_PASSWORD, 11 chars, matches none of the 16 §2.1 guesses,
+  auditor-verified without printing the value). §9 discloses this gap explicitly
+  ("a credential not tried in §2.1"), so the COMBINED record (§1–§8 + §9–§11) is
+  complete and honest. The §1–§8 list of 16 passwords / 8 keys / LuCI / ubus attempts
+  is otherwise accurate.
+- **Current hardware state: correct as amended.** §1–§8's implicit identity
+  (192.168.1.1 = the CF-WR632AX) was wrong; §9 records the true state, all
+  live-re-confirmed by the auditor: GL.iNet GL-MT6000 (board_name glinet,gl-mt6000,
+  OUI 94:83:C4), OpenWrt 24.10.1, opkg (no apk), eMMC not NAND, hostname
+  tollgate-4SQY / runtime TollGate, WAN DHCP lease but dead gateway, no upstream,
+  −11 s clock drift. The actual CF-WR632AX was searched for and not found (ICMP
+  sweep, WiFi scan, device-side neighbor/DHCP tables, WAN-subnet probe); the staged
+  runbook's "device OFF (2026-09-01)" note corroborates it is powered off or off-site.
+
+### Exact missing / ambiguous items (for re-issue)
+1. (a) Verbatim full `cat /etc/openwrt_release` output — now supplied by the auditor's
+   capture (24.10.1); still missing FOR THE CF-WR632AX, along with every other
+   CF-WR632AX preflight leg (identity, baselines, clock, recovery) — none can be
+   captured until that device is located and powered on.
+2. (b) A genuinely tested recovery procedure (observed benign-change + revert-verification
+   output) — does not exist for ANY device in this bundle. Re-issue needed.
+3. §6 Option A/B "recovery procedures" are documented-not-tested (reflash paths,
+   destructive) — they must not be mistaken for the tested path criterion (b) requires.
+
+### Verdict
+
+**OVERALL: FAIL (as an issue-32 preflight deliverable) — the bundle is honest,
+internally consistent, hash-verified and live-confirmed, but (a) 25.12.4 evidence and
+(b) a tested recovery path are absent because the target CF-WR632AX was never
+reachable; everything captured belongs to a different device (GL-MT6000), whose own
+preflight legs (c)(d)(e) all PASS. The clock NO-GO and device-identity mismatch both
+stand, live-re-confirmed 2026-09-15.**
