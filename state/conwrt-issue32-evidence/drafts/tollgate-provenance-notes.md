@@ -267,3 +267,27 @@ Fallback path (`gw` empty — model has no `lan_subnet`, or an unparseable one s
 tree). `state/conwrt-issue32-evidence/drafts/tollgate-subsection.md` was not written by this task.
 The only file this task created is
 `state/conwrt-issue32-evidence/drafts/tollgate-provenance-notes.md`.
+
+### Raw read-only excerpt (captured after this file was written and committed)
+
+```text
+$ sha256sum docs/wizard-bundle.json
+6fe93f952fe68a53facd7d0a3561865377ccdd15beb3801cb4432b23a507277e  docs/wizard-bundle.json
+
+$ git status --porcelain -- state/conwrt-issue32-evidence/checklist.md docs/wizard-bundle.json
+(empty — checklist.md not created; bundle unmodified)
+
+$ git status --porcelain
+?? state/conwrt-issue32-evidence/drafts/net4sats-binding.fragment.md
+?? state/conwrt-issue32-evidence/drafts/net4sats-derivation-notes.md
+?? state/conwrt-issue32-evidence/drafts/net4sats-generator-provenance.md
+
+$ git show --stat --oneline HEAD
+b77d11d docs(issue32): tollgate LAN-move ipv4 provenance notes (derived-ipv4 verdict)
+ .../drafts/tollgate-provenance-notes.md            | 269 +++++++++++++++++++++
+ 1 file changed, 269 insertions(+)
+```
+
+The three `??` entries are pre-existing untracked files owned by other tasks (net4sats lane); this
+task did not create or modify them. `state/conwrt-issue32-evidence/drafts/tollgate-subsection.md`
+(another task's file) was not written by this task.
