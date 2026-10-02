@@ -1,0 +1,30 @@
+docs/wizard-bundle.json -> rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"].shell
+
+LAN-move command block (verbatim):
+
+```sh
+# --- Move the LAN off 192.168.1.1 ---
+ssh root@$IP sh <<'CONWRT_EOF'
+# move LAN off 192.168.1.1 → 192.168.1.1 (192.168.1.0/24)
+uci set network.lan.ipaddr='192.168.1.1'
+uci set network.lan.netmask='255.255.255.0'
+uci commit network
+(/etc/init.d/network restart &) ; echo 'LAN moving to 192.168.1.1 — reconnect on that subnet'
+CONWRT_EOF
+```
+
+Read-back command block (verbatim):
+
+```text
+(none — the tollgate recipe emits no read-back command; there is nothing to quote)
+```
+
+Source locators:
+- LAN-move block: state/conwrt-issue32-evidence/tollgate-lan-move.md:6-15 (fenced ```sh block: opening fence line 6, content lines 7-14, closing fence line 15)
+- Read-back block: state/conwrt-issue32-evidence/tollgate-lan-move.md:20-22 (fenced ```text block: opening fence line 20, content line 21, closing fence line 22)
+
+(e) No command block was re-derived from docs/wizard-bundle.json: the LAN-move block is present verbatim in the primary source and is reproduced above byte-for-byte; the read-back block does not exist in the source, so no read-back command text was re-derived. JSON string escaping (\n, \", \t) was unescaped with `jq -r` only in order to byte-check the LAN-move block against docs/wizard-bundle.json -> rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"].shell (JSON physical file line 358); the unescaped form is what a shell would receive.
+
+(f) GAP notes:
+
+GAP: read-back command block is MISSING. state/conwrt-issue32-evidence/tollgate-lan-move.md carries only a fenced ```text block (lines 20-22) stating that no read-back command exists; it contains no read-back command text. Re-derivation attempted against docs/wizard-bundle.json -> rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"].shell (JSON physical file line 358) confirms the recipe performs no read-back: 0 occurrences of `uci get`, 0 of `uci show`, 0 of `ip addr`, 0 of `ubus call` in the unescaped shell string (and 0 of each across all 86 rendered entries). Missing item = the read-back command block; there is no read-back command text to re-derive.
