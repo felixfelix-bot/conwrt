@@ -1,13 +1,43 @@
-# Provenance verification — LAN-move and read-back, net4sats and tollgate
+# Provenance verification — LAN-move and read-back, net4sats and tollgate flows
 
-Synthesis of (a) the completion note of the evidence-extraction task t_d12347f6, (b) the tollgate per-flow audit task t_6896af59 and its audit chain (t_960feef0 -> t_c3a46b44 -> t_3f7d705a -> {t_7c40904e, t_fb6e57f0} -> t_c5842c60), and (c) the net4sats per-flow audit task t_0db786fa (see DISCLOSURE below), tested against the two worker notes
-state/conwrt-issue32-evidence/net4sats-lan-move.md and state/conwrt-issue32-evidence/tollgate-lan-move.md (claims only).
+Independent audit. Audited artifact (read-only, byte-unchanged): `/home/c03rad0r/repos/conwrt/docs/wizard-bundle.json`, branch `feat/vpn-provider-setup`, HEAD `70efbbfe72e85f2a525f4c22da12eaddacbd05d7`, sha256 `6fe93f952fe68a53facd7d0a3561865377ccdd15beb3801cb4432b23a507277e`, 614953 bytes, 854 complete lines. The bundle was read FIRST and every verdict below is derived only from its bytes; the two worker notes were read afterwards and treated solely as claims.
 
-Evidence base (read-only, unmodified by this task): `/home/c03rad0r/repos/conwrt`, branch `feat/vpn-provider-setup`, HEAD `9c8282d84f47036e009c9c0a31bf3932e32526aa`; `docs/wizard-bundle.json` sha256 `6fe93f952fe68a53facd7d0a3561865377ccdd15beb3801cb4432b23a507277e` (614953 bytes, 854 physical lines).
+Rule applied (from the audit card): a LAN-move block is SAFE only when it references `derive_device_secret.py` output or a variable bound to that output. It is UNSAFE if it instead uses a hardcoded literal IP, an unresolved placeholder such as `{lan_ip}`, a stale copy/pasted address, or an implicit/absent binding. Read-back is safe only when it re-reads the same source the LAN-move wrote.
 
-Every quoted line below is copied byte-identically from the raw bytes of `docs/wizard-bundle.json`. The backslash sequences (`\n`, `\u2192`, `\u2014`) are literal JSON string escapes present in the file; none of them is whitespace or punctuation added by this document. Whole-file fixed-string counts used below were re-run against the same file: `{{lan_ip}}` = 0, `uci get` = 0, `uci show` = 0, `ip addr` = 0, `ubus call` = 0, `derive_device_secret` = 0, `lan_gateway` = 0, `"lan_subnet"` (as a JSON key) = 0.
+Shape of the ground truth (read before any note):
+- `flows` is a JSON **array** of 2 objects. `flows[0].name` = net4sats (physical line 262); `flows[1].name` = tollgate (physical line 292). Each flow object has exactly the keys name, description, params.
+- `flows[0].params` and `flows[1].params` both carry ONLY `upstream_ssid`, `upstream_key`, `upstream_band`. There is **no** `lan_ip`, `lan_gateway`, `ipv4`, `steps[]` or `config` key anywhere in the file.
+- The LAN-move text exists only inside `rendered["<model-id>"]["<flow-name>"]["<version>"]["shell"|"markdown"]`.
+- The bundle's `models[]` objects carry only `id`, `vendor`, `description`, `target`, `version`, `capabilities` — **no** `lan_subnet` key (the string `lan_subnet` occurs only inside markdown prose, never as a JSON key).
+- Whole-file fixed-string counts (re-run by this audit against the same bytes): `{{lan_ip}}` = 0, `LAN_IP` = 0, `derive_device_secret` = 0, `lan_gateway` = 0, `uci get` = 0, `grep -qxF` = 0, `read-back` (case-insensitive) = 0, `uci show` = 0, `ip addr` = 0, `ubus call` = 0. The only `{{...}}` placeholders in the file are `{{hostname}}`, `{{root_password}}`, `{{upstream_ssid}}`, `{{upstream_key}}`, `{{upstream_band}}`.
+- `git ls-files scripts/derive_device_secret.py` = 0 lines; the file does not exist at HEAD, so no block in this bundle can reference its output.
 
-**DISCLOSURE — the designated net4sats audit produced no note.** The sibling audit task t_0db786fa ("Audit net4sats LAN-move and read-back provenance claims") never produced a completion note; its last runs are `blocked`. No net4sats-authored `CORRECTION:` line exists to carry over. Where a net4sats CORRECTION line appears below it is quoted verbatim from the auditor of the identical shared LAN-move step (t_7c40904e, which records "Both flows render the identical LAN-move step"), and the two `comfast-cf-wr632ax` slots were re-verified byte-identical by direct extraction (LAN-move tail sha256 `2001e0470860ca02c09386af40ec098af7c0631a6f34fc4cdf13a13de34c481a`, 337 characters, in both flows). No verdict text has been reworded, softened or strengthened.
+Both flows render the SAME LAN-move block: across all 43 (model,version) slots per flow the LAN-move tail is 43/43 byte-identical between `net4sats` and `tollgate`. Per-model applied `network.lan.ipaddr` (identical for both flows):
+
+```text
+asus-lyra-map-ac2200         10.231.9.1
+comfast-cf-wr632ax           192.168.1.1
+dlink-covr-x1860-a1          10.89.4.1
+extreme-networks-ws-ap3915i  10.47.217.1
+glinet-gl-ar150              10.135.117.1
+glinet-gl-ar300m-lite        10.193.202.1
+glinet-gl-ar300m-nand        10.64.224.1
+glinet-gl-ar300m-nor         10.107.186.1
+glinet-mt3000                10.230.236.1
+glinet-mt6000                10.230.237.1
+linksys-mx4200-v1            10.36.125.1
+linksys-whw03-v1             10.12.100.1
+linksys-whw03-v2             10.61.168.1
+ubnt-edgerouter-6p           10.141.185.1
+ubnt-edgerouter-x            10.78.162.1
+zyxel-ex5700-telenor         10.13.237.1
+zyxel-gs1900-24e             10.44.172.1
+zyxel-gs1900-8hp-a1          10.172.177.1
+zyxel-gs1900-8hp-b1          10.47.149.1
+zyxel-gs1920-24              10.213.244.1
+zyxel-nr7101                 10.63.178.1
+zyxel-wx5600-t0              10.220.129.1
+```
 
 ---
 
@@ -20,58 +50,70 @@ Flow name: **net4sats** — `flows[0].name`, physical line 262:
 ```
 
 JSON key path(s) inspected:
+- `rendered["asus-lyra-map-ac2200"]["net4sats"]["24.10.7"]["shell"]` (physical line 330) — LAN-move block is the final section of this shell string.
+- `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"]["shell"]` (physical line 352) — the no-op slot.
+- `flows[0].params` — key set proved below.
+- Sweep: all 43 net4sats slots / 86 shell+markdown strings.
+- Read-back key path: **NONE / absent** — no read-back block exists for this flow anywhere in the bundle.
 
-- `rendered["asus-lyra-map-ac2200"]["net4sats"]["24.10.7"].shell` (physical line 330) — the LAN-move block is the final section of this shell string.
-- `rendered["asus-lyra-map-ac2200"]["net4sats"]["24.10.7"].markdown` (physical line 331) — markdown transport of the same slot.
-- `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"].shell` (physical line 352) — byte-identical LAN-move tail to the tollgate slot corrected below.
-- Read-back key path: **NONE**. No read-back block exists for this flow anywhere in the bundle.
-
-Verbatim quoted evidence — LAN-move tail of physical line 330, key path `rendered["asus-lyra-map-ac2200"]["net4sats"]["24.10.7"].shell` (raw file bytes):
+Verbatim quoted evidence (raw file bytes), key path `rendered["asus-lyra-map-ac2200"]["net4sats"]["24.10.7"]["shell"]`, physical line 330:
 
 ```text
 # --- Move the LAN off 192.168.1.1 ---\nssh root@$IP sh <<'CONWRT_EOF'\n# move LAN off 192.168.1.1 \u2192 10.231.9.1 (10.231.9.0/24)\nuci set network.lan.ipaddr='10.231.9.1'\nuci set network.lan.netmask='255.255.255.0'\nuci commit network\n(/etc/init.d/network restart &) ; echo 'LAN moving to 10.231.9.1 \u2014 reconnect on that subnet'\nCONWRT_EOF\n
 ```
 
-Verbatim quoted evidence — LAN-move tail of physical line 352, key path `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"].shell` (raw file bytes):
+Verbatim quoted evidence, key path `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"]["shell"]`, physical line 352:
 
 ```text
 # --- Move the LAN off 192.168.1.1 ---\nssh root@$IP sh <<'CONWRT_EOF'\n# move LAN off 192.168.1.1 \u2192 192.168.1.1 (192.168.1.0/24)\nuci set network.lan.ipaddr='192.168.1.1'\nuci set network.lan.netmask='255.255.255.0'\nuci commit network\n(/etc/init.d/network restart &) ; echo 'LAN moving to 192.168.1.1 \u2014 reconnect on that subnet'\nCONWRT_EOF\n
 ```
 
-Verbatim quoted evidence — the applied-value line, byte-identical in both key paths above:
+Verbatim quoted evidence, key path `flows[0].params` (physical lines 264-265), and the complete set of its descendant keys (physical lines 265/272/279) — no `lan_ip`:
 
 ```text
-uci set network.lan.ipaddr='10.231.9.1'
+      "params": {
+        "upstream_ssid": {
 ```
 
-Read-back quoted evidence: **none exists**. The shell string quoted above terminates immediately after `CONWRT_EOF\n`; there is no read-back statement to quote for this flow. Absence evidence over the whole bundle: `uci get` = 0, `uci show` = 0, `ip addr` = 0, `ubus call` = 0.
+Complete descendant key lines of `flows[0].params` (physical lines 265/272/279 — each line is verbatim, but they are not contiguous in the file, so this block is a list, not a single quote):
 
-**LAN-move verdict: CORRECTED** (auditor verdict: UNSAFE). The net4sats note's label is "APPLIES DERIVED VALUE". Under the auditors' rule — SAFE only when the binding to `derive_device_secret.py` output is explicit and traceable — the LAN-move text is a generate-time per-model literal frozen into the bundle, so the label is superseded by UNSAFE. Correction carried over verbatim (same text the auditor emitted for the byte-identical shared step; no net4sats-authored correction line exists — see DISCLOSURE):
+```text
+        "upstream_ssid": {
+        "upstream_key": {
+        "upstream_band": {
+```
+
+**LAN-move verdict: CORRECTED — UNSAFE.** Worker-note verdict was `APPLIES DERIVED VALUE` (SAFE-equivalent). The emitted `ipaddr` is a per-model **hardcoded literal string** baked into the bundle; it is neither a reference to `derive_device_secret.py` output (that file does not exist at this HEAD) nor a variable bound to such output (`lan_gateway`, `LAN_IP`, `{{lan_ip}}` each occur 0 times). The bundle contains no binding construct at all, so the binding is implicit/absent — both of the card's UNSAFE triggers.
 
 ```correction
 CORRECTION: APPLIES DERIVED VALUE -> UNSAFE
 ```
-
-  Key path: `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"].shell` (physical line 352).
+  Key path: `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"]["shell"]` (physical line 352).
   Verbatim evidence:
-
 ```text
 uci set network.lan.ipaddr='192.168.1.1'
 ```
+  Key path: `rendered["asus-lyra-map-ac2200"]["net4sats"]["24.10.7"]["shell"]` (physical line 330).
+  Verbatim evidence:
+```text
+uci set network.lan.ipaddr='10.231.9.1'
+```
 
-**Read-back verdict: CORRECTED** (auditor verdict: UNSAFE, absent binding). The net4sats note determines read-back to be ABSENT but attaches no verdict to that absence; under the read-back rule the absence *is* the UNSAFE condition. Correction carried over verbatim (same text the auditor emitted for the byte-identical shared step):
+**Read-back verdict: CORRECTED — UNSAFE (absent binding).** The note records read-back as ABSENT but attaches no UNSAFE classification to that absence; under the card's rule an absent binding is itself the unsafe condition, and nothing re-reads the value the LAN-move wrote.
 
 ```correction
-CORRECTION: READ-BACK NONE (no read-back command; unlabeled) -> UNSAFE (absent binding)
+CORRECTION: READ-BACK "(none)" (absence recorded, verdict-neutral) -> UNSAFE (absent binding)
 ```
-
-  Key path: `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"].shell` (physical line 352); inspected counterpart `rendered["asus-lyra-map-ac2200"]["net4sats"]["24.10.7"].shell` (physical line 330).
-  Verbatim evidence: the block quoted above writes the address and commits unconditionally;
-  the only later repetition of the address is the hardcoded echo inside the same shell string:
-
+  Key path: `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"]["shell"]` (physical line 352); counterpart `rendered["asus-lyra-map-ac2200"]["net4sats"]["24.10.7"]["shell"]` (physical line 330).
+  Verbatim evidence — unconditional commit, then only a hardcoded echo; no verification statement follows:
 ```text
-(/etc/init.d/network restart &) ; echo 'LAN moving to 192.168.1.1 \u2014 reconnect on that subnet'
+uci commit network\n(/etc/init.d/network restart &) ; echo 'LAN moving to 192.168.1.1 \u2014 reconnect on that subnet'\nCONWRT_EOF\n
 ```
+
+Flagged unsupported / overstated in the net4sats note:
+- The phrase "not a hardcoded literal" does not follow from the audited artifact. In the bundle the value IS a literal string; the derivation the note cites (`scripts/flows/render.py:131` reading `target["lan_gateway"]`, itself computed in `scripts/profile/target.py:112-117` from `model["lan_subnet"]`) happens pre-emission in generator source and is not present, traceable or verifiable from `docs/wizard-bundle.json`. It is a generate-time static computation from `models/*.json`, not a device-identity derivation, so it does not satisfy the card's "derived ipv4" test.
+- The note cites HEAD `d194b31ce0457d746127bb1fbe64c035fe64e082`; the actual HEAD is `70efbbfe72e85f2a525f4c22da12eaddacbd05d7`. The bundle sha256 is unchanged, so the audited bytes are identical, but the note's HEAD citation is stale.
+- The note's "43 rendered slots" vs "172 rendered strings" bookkeeping is imprecise: 43 (model,version) slots per flow x 2 flows = 86 slots, each with a `.shell` and a `.markdown` string = 172 strings. The verdict is unaffected.
 
 ---
 
@@ -84,54 +126,68 @@ Flow name: **tollgate** — `flows[1].name`, physical line 292:
 ```
 
 JSON key path(s) inspected:
+- `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"]["shell"]` (physical line 358) — LAN-move block is the final section of this shell string.
+- `rendered["asus-lyra-map-ac2200"]["tollgate"]["24.10.7"]["shell"]` (physical line 340).
+- `flows[1].params`.
+- Sweep: all 43 tollgate slots / 86 shell+markdown strings.
+- Read-back key path: **NONE / absent**.
 
-- `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"].shell` (physical line 358) — the LAN-move block is the final section of this shell string.
-- `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"].markdown` (physical line 359) — markdown transport of the same slot.
-- Read-back key path: **NONE**. No read-back block exists for this flow anywhere in the bundle.
-
-Verbatim quoted evidence — LAN-move tail of physical line 358, key path `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"].shell` (raw file bytes):
+Verbatim quoted evidence (raw file bytes), key path `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"]["shell"]`, physical line 358:
 
 ```text
 # --- Move the LAN off 192.168.1.1 ---\nssh root@$IP sh <<'CONWRT_EOF'\n# move LAN off 192.168.1.1 \u2192 192.168.1.1 (192.168.1.0/24)\nuci set network.lan.ipaddr='192.168.1.1'\nuci set network.lan.netmask='255.255.255.0'\nuci commit network\n(/etc/init.d/network restart &) ; echo 'LAN moving to 192.168.1.1 \u2014 reconnect on that subnet'\nCONWRT_EOF\n
 ```
 
-Verbatim quoted evidence — the applied-value line, same key path, physical line 358:
+Verbatim quoted evidence, key path `rendered["asus-lyra-map-ac2200"]["tollgate"]["24.10.7"]["shell"]`, physical line 340:
 
 ```text
-uci set network.lan.ipaddr='192.168.1.1'
+# --- Move the LAN off 192.168.1.1 ---\nssh root@$IP sh <<'CONWRT_EOF'\n# move LAN off 192.168.1.1 \u2192 10.231.9.1 (10.231.9.0/24)\nuci set network.lan.ipaddr='10.231.9.1'\nuci set network.lan.netmask='255.255.255.0'\nuci commit network\n(/etc/init.d/network restart &) ; echo 'LAN moving to 10.231.9.1 \u2014 reconnect on that subnet'\nCONWRT_EOF\n
 ```
 
-Read-back quoted evidence: **none exists**. The shell string quoted above terminates immediately after `CONWRT_EOF\n`; there is no read-back statement to quote for this flow. Absence evidence over the whole bundle: `uci get` = 0, `uci show` = 0, `ip addr` = 0, `ubus call` = 0.
+Verbatim quoted evidence, key path `flows[1].params` (physical lines 294-295), and the complete set of its descendant keys (physical lines 295/302/309) — no `lan_ip`:
 
-**LAN-move verdict: CORRECTED** (auditor verdict: UNSAFE). The note's label "APPLIES DERIVED VALUE" is a provenance label, not a SAFE/UNSAFE verdict; under the audit rule it is superseded by UNSAFE. Correction carried over verbatim:
+```text
+      "params": {
+        "upstream_ssid": {
+```
+
+Complete descendant key lines of `flows[1].params` (physical lines 295/302/309 — each line is verbatim, but they are not contiguous in the file, so this block is a list, not a single quote):
+
+```text
+        "upstream_ssid": {
+        "upstream_key": {
+        "upstream_band": {
+```
+
+**LAN-move verdict: CORRECTED — UNSAFE.** Worker-note verdict was `APPLIES DERIVED VALUE`. Same evidence as net4sats: the block writes a per-model hardcoded literal (`uci set network.lan.ipaddr='192.168.1.1'` for comfast-cf-wr632ax), with no reference to `derive_device_secret.py` output and no variable bound to it. Worst case: for comfast-cf-wr632ax that literal equals the OpenWrt default, so the step titled "Move the LAN off 192.168.1.1" moves the LAN to 192.168.1.1 and the echo falsely announces "LAN moving to 192.168.1.1" — a silent no-op, undetected because no read-back exists.
 
 ```correction
 CORRECTION: APPLIES DERIVED VALUE -> UNSAFE
 ```
-
-  Key path: `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"].shell` (physical line 358; shell-string line 65).
+  Key path: `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"]["shell"]` (physical line 358).
   Verbatim evidence:
-
 ```text
 uci set network.lan.ipaddr='192.168.1.1'
 ```
 
-**Read-back verdict: CORRECTED** (auditor verdict: UNSAFE, mismatch class = absent binding). The note states read-back is absent but declares the absence a caveat that does not change its verdict; the auditor corrects that framing. Correction carried over verbatim:
+**Read-back verdict: CORRECTED — UNSAFE (absent binding).** The note states read-back is absent but declares the absence a caveat that does not change its verdict; under the card's rule the absence IS the unsafe condition.
 
 ```correction
-CORRECTION: READ-BACK NONE (no read-back command; unlabeled) -> UNSAFE (absent binding)
+CORRECTION: READ-BACK "(none)" (absence recorded, verdict-neutral) -> UNSAFE (absent binding)
 ```
-
-  Key path: `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"].shell` (physical line 358).
-  Verbatim evidence: the block quoted above writes the address and commits unconditionally; the only later repetition of the address is the hardcoded echo inside the same shell string:
-
+  Key path: `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"]["shell"]` (physical line 358).
+  Verbatim evidence — unconditional commit, then only a hardcoded echo; no verification statement:
 ```text
-(/etc/init.d/network restart &) ; echo 'LAN moving to 192.168.1.1 \u2014 reconnect on that subnet'
+uci commit network\n(/etc/init.d/network restart &) ; echo 'LAN moving to 192.168.1.1 \u2014 reconnect on that subnet'\nCONWRT_EOF\n
 ```
+
+Flagged unsupported / overstated in the tollgate note:
+- "the two transports are rendered from the same op list, so they cannot diverge" is a generator-internal claim, not quotable from `docs/wizard-bundle.json`; the bundle only shows the two rendered strings.
+- The note cites HEAD `34413b132b67fcdbbb54a3c500051dc2484ade36`; the actual HEAD is `70efbbfe72e85f2a525f4c22da12eaddacbd05d7` (bundle sha unchanged, so the artifact is identical; the HEAD citation is stale).
+- Both notes reference a PR#55 divergence carrying `LAN_IP='{{lan_ip}}'` plus a `grep -qxF` read-back. That is a different artifact (branch `pr-55`, head `ec5c60d9`); it is NOT part of the artifact audited here, where `{{lan_ip}}` and `grep -qxF` both occur 0 times.
 
 ---
 
 ## Summary
 
-Neither flow risks a silent fallback to an unresolved placeholder at this revision: the whole-file count of `{{lan_ip}}` in `docs/wizard-bundle.json` is 0, and the address each flow applies is a generate-time per-model value (the model's `lan_subnet` network address + 1), not a hand-written literal — so there is no unresolved-placeholder fallback and no hardcoded-literal fallback either; the silent-failure mode the auditors identified is instead the total absence of any read-back (`uci get`, `uci show`, `ip addr`, `ubus call` each occur 0 times in the whole bundle), meaning neither flow ever verifies that the value it wrote took effect. The JSON key path responsible, if a silent fallback were to occur, is the LAN-move text inside `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"].shell` (physical line 352) and its byte-identical sibling `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"].shell` (physical line 358): for that model the written value is `192.168.1.1`, which equals the OpenWrt default, so the "Move the LAN off 192.168.1.1" step is a no-op that no read-back detects; the same key path carries `10.231.9.1`-class values for the other 21 models. The one revision where this key path does carry an unresolved placeholder is pr-55 (`ec5c60d9`), where, per the auditor record (not re-verified in this task), `{{lan_ip}}` occurs 4 times on bundle lines 366/367/372/373; that revision is not an ancestor of this HEAD.
-
+Both flows expose the same provenance defect and neither is safe. The LAN-move in `docs/wizard-bundle.json` at HEAD `70efbbfe72e85f2a525f4c22da12eaddacbd05d7` (sha256 `6fe93f952fe68a53facd7d0a3561865377ccdd15beb3801cb4432b23a507277e`) does not reference `derive_device_secret.py` output and is not bound to any variable derived from it — the file does not exist at this HEAD and the tokens `{{lan_ip}}`, `LAN_IP`, `lan_gateway` and `derive_device_secret` each occur 0 times. Instead, every one of the 43 net4sats and 43 tollgate slots writes a per-model hardcoded literal (`uci set network.lan.ipaddr='<ip>'`) baked into the bundle, so the binding is implicit/absent — UNSAFE under the card's rule — and no read-back exists anywhere, so the written value is never verified. The concrete silent-fallback-to-hardcoded-literal case is `rendered["comfast-cf-wr632ax"]["net4sats"]["25.12.4"]["shell"]` (physical line 352) and its byte-identical sibling `rendered["comfast-cf-wr632ax"]["tollgate"]["25.12.4"]["shell"]` (physical line 358), where the literal equals the OpenWrt default 192.168.1.1: the "Move the LAN off 192.168.1.1" step is a no-op that the recipe silently reports as a successful move. The JSON key path responsible for any silent literal/placeholder fallback is therefore that LAN-move text under `rendered["<model-id>"]["net4sats"|"tollgate"]["<version>"]["shell"|"markdown"]` — no other candidate binding key exists in the bundle.
