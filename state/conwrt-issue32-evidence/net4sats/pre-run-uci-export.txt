@@ -1,0 +1,103 @@
+# pre-run `uci export` snapshot — CF-WR632AX (conwrt issue #32)
+# ============================================================================
+# Captured at : 2026-10-15T09:34:12Z   (2026-10-15 11:34:12 CEST)
+# Host       : c03rad0r-DQ05proplus   (Linux 6.17.0-41-generic)
+# Worker     : profile worker-tollgate, kanban task t_f948b651
+# Target     : CF-WR632AX, documented LAN IP 192.168.1.1, OUI 40:A5:EF
+# Source     : models/comfast-cf-wr632ax.json; AGENTS.md; docs/gotchas.md
+#
+# STATUS: BLOCKED — NO `uci export` OUTPUT EXISTS FOR THIS RUN.
+#
+# The card requires the raw `uci export` output as it is on the live device
+# before any mutating step. That output COULD NOT BE OBTAINED, because the
+# device is not reachable from this host by any documented path. The raw probe
+# log is `preflight-reachability.txt` in this directory. In one line:
+#
+#   $ ssh -o BatchMode=yes -o ConnectTimeout=8 root@192.168.1.1 'cat /etc/openwrt_release'
+#   -> timeout, no route to host            (exit 124 / rc 255)
+#   $ ping -c3 -W2 192.168.1.1   -> 3 packets transmitted, 0 received, 100% loss
+#   $ ip neigh | grep -i 40:a5:ef -> no match (no COMFAST-OUI neighbour)
+#   $ sudo iw dev wlp2s0 scan    -> no 40:a5:ef BSSID on 2.4 or 5 GHz
+#   $ ls /dev/ttyUSB* /dev/ttyACM* -> no serial adapter attached to this host
+#
+# Nothing below is device output. Fabricating a snapshot would be worse than
+# reporting the gap, so this file records the gap plus the exact host-side
+# facts that were observed. NO CONFIG WAS MODIFIED (no uci write, no reboot,
+# no config write reached any device).
+#
+# ---------------------------------------------------------------------------
+# DEVICE-SIDE COMMAND THAT MUST BE RUN ONCE THE DEVICE IS REACHABLE
+# ---------------------------------------------------------------------------
+#   ssh root@192.168.1.1 'uci export'            > pre-run-uci-export.txt
+#   ssh root@192.168.1.1 'cat /proc/mtd'         > pre-run-mtd.txt
+#   ssh root@192.168.1.1 'opkg list-installed'   > pre-run-packages.txt
+#   ssh root@192.168.1.1 'cat /etc/config/network' > pre-run-network.txt
+#
+# Each output must be re-headed with an ISO-8601 timestamp at capture time,
+# e.g.  printf '%s\n' "# captured-at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+#
+# ---------------------------------------------------------------------------
+# HOST-SIDE FACTS (the only pre-run state that could be captured today)
+# ---------------------------------------------------------------------------
+$ date -u
+Thu Oct 15 09:34:12 UTC 2026
+
+$ date
+Thu Oct 15 11:34:12 CEST 2026
+
+$ hostname
+c03rad0r-DQ05proplus
+
+$ ip -brief addr
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+enp1s0           UP             192.168.2.38/24
+wlp2s0           UP             192.168.2.32/24 2a01:599:11d:2324:80b6:1d2d:e253:6824/64
+tun-tollgate     UNKNOWN        10.255.255.1/30
+wt0              UNKNOWN        100.90.22.201/16
+(plus docker/virbr/loomtap/fips virtual interfaces — no bench NIC is up)
+
+$ ip route get 192.168.1.1
+192.168.1.1 via 192.168.2.1 dev enp1s0 src 192.168.2.38 uid 1000
+# i.e. 192.168.1.0/24 is NOT on-link here: the route goes out the home FritzBox.
+# There is no bench ethernet path from this host to the device's LAN segment.
+
+# ---------------------------------------------------------------------------
+# EXPECTED `uci export` SHAPE (from the repo, NOT device output)
+# ---------------------------------------------------------------------------
+# The device runs OpenWrt (models/comfast-cf-wr632ax.json: openwrt.target
+# mediatek/filogic, version "25"). A stock/never-wizard'd unit exports the
+# default /etc/config tree; package `network` carries the LAN block whose
+# ipaddr is 192.168.1.1. Expected relevant stanza shape (illustrative only —
+# do NOT treat any line here as observed):
+#
+#   package network
+#   config interface 'loopback'      ...
+#   config device                    ... option name 'br-lan' ...
+#   config interface 'lan'           option device 'br-lan'
+#                                    option proto 'static'
+#                                    option ipaddr '192.168.1.1'
+#                                    option netmask '255.255.255.0'
+#   config interface 'wan'           ...
+#   package system                   ... option hostname '...'; option timezone 'UTC'
+#   package dropbear                 ... config dropbear  option PasswordAuth '...'
+#
+# Per AGENTS.md this specimen has NO recorded inventory and NO installed SSH
+# key (data/inventory.jsonl does not exist — only .gitkeep). Whether dropbear
+# currently allows password auth is therefore UNKNOWN until the device is read.
+
+# ---------------------------------------------------------------------------
+# TO UNBLOCK (operator actions)
+# ---------------------------------------------------------------------------
+# 1. Power the CF-WR632AX (USB-C 5V/3A — it is NOT PoE-powered, so a
+#    GS1900-8HP PoE port cannot power it).
+# 2. Put its LAN port on a path this host can see, one of:
+#      a. a NIC on 192.168.1.0/24 (then the stock 192.168.1.1 applies), or
+#      b. the host's LAN 192.168.2.0/24 and REPORT the IP it got (the worker may
+#         not sweep for it if consent denies it, and the firmware may have
+#         randomised the LAN IP behind the 95-random-lan-ip marker), or
+#      c. attach a 3.3V USB-serial adapter to the UART header (115200 8N1).
+# 3. Re-dispatch t_f948b651; the worker will then capture the real four
+#    artifacts at the paths named above and re-write this file with device data.
+# 4. Per AGENTS.md post-first-access checklist, immediately after the first
+#    successful SSH: record inventory (scripts/inventory.py --add) AND install
+#    an SSH key — that is the step whose omission lost this unit before.
