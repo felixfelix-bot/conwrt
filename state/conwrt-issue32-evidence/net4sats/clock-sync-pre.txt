@@ -1,0 +1,79 @@
+# clock-sync evidence (pre-run) — CF-WR632AX (conwrt issue #32)
+# ============================================================================
+# Captured at : 2026-10-15T09:34:13Z   (2026-10-15 11:34:13 CEST)
+# Host       : c03rad0r-DQ05proplus   (Linux 6.17.0-41-generic)
+# Worker     : profile worker-tollgate, kanban task t_f948b651
+# Target     : CF-WR632AX @ 192.168.1.1 (OUI 40:A5:EF)
+#
+# VERDICT: NO-GO — device clock is UNVERIFIABLE (device unreachable)
+# ============================================================================
+# The card requires, from the DEVICE: `date -u`, NTP sync/peers status
+# (`ubus call system info` / `ntpq -p` / `sysntpd status`), and whether the
+# clock is synchronized plus any drift. NONE of that could be captured,
+# because no documented path to the device is live from this host. Raw probe
+# log: `preflight-reachability.txt` in this directory.
+#
+# This is "cannot verify", NOT "clock known bad". No device clock value,
+# NTP state, or drift number appears in this file, because none was observed.
+# Nothing here is fabricated.
+#
+# ---------------------------------------------------------------------------
+# 1. ON-DEVICE COMMANDS THAT MUST BE RUN (once reachable) — expected evidence
+# ---------------------------------------------------------------------------
+#   ssh root@192.168.1.1 'date -u'                       # UTC wall clock on device
+#   ssh root@192.168.1.1 'date; date -u'                # local TZ vs UTC
+#   ssh root@192.168.1.1 'ubus call system info'        # {"localtime":..,"uptime":..}
+#   ssh root@192.168.1.1 'ntpq -p'                      # if ntpclient/ntpd present
+#   ssh root@192.168.1.1 '/etc/init.d/sysntpd status'   # busybox sysntpd (OpenWrt default)
+#   ssh root@192.168.1.1 'ps w | grep -E "ntpd|sysntpd"'
+#   ssh root@192.168.1.1 'cat /etc/config/system'       # ntp servers / enabled
+#   ssh root@192.168.1.1 'ubus call system board'       # + /etc/openwrt_release for version
+# Drift is computed as (device `date -u` epoch) - (host `date -u` epoch), taken
+# within the same second; record both raw strings AND the numeric delta.
+#
+# GO/NO-GO RULE (unchanged from the 2026-10-01 attempt, recorded in
+# ~/.hermes/profiles/manager/state/conwrt-issue32-evidence/preflight/clock-sync.txt):
+#   GO   = device reachable AND `date -u` sane (not epoch 1970, not months off)
+#          AND sysntpd running/ntpd process present AND drift within seconds.
+#   NO-GO = any of the above missing or the device unreachable.
+# This matters because HTTPS firmware downloads (sysupgrade), opkg over HTTPS
+# and TLS certificate validation all fail on a badly-skewed clock.
+#
+# ---------------------------------------------------------------------------
+# 2. HOST REFERENCE CLOCK (the comparison baseline for the drift that could
+#    not be measured — this is the ONLY clock evidence obtainable today)
+# ---------------------------------------------------------------------------
+$ date -u
+Thu Oct 15 09:34:13 UTC 2026
+
+$ timedatectl
+               Local time: Thu 2026-10-15 11:34:13 CEST
+           Universal time: Thu 2026-10-15 09:34:13 UTC
+                 RTC time: Thu 2026-10-15 09:34:13
+                Time zone: Europe/Berlin (CEST, +0200)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+
+# Host clock status: SYNCHRONIZED (systemd-timesyncd active, RTC matches).
+# Host epoch at capture: 2026-10-15T09:34:13Z. This is the value the device
+# clock would have been differenced against. Device drift: NOT COMPUTED
+# (no device time observed).
+#
+# ---------------------------------------------------------------------------
+# 3. WHY THE DEVICE-SIDE CLOCK COULD NOT BE READ (observed, read-only)
+# ---------------------------------------------------------------------------
+#   $ ssh -o BatchMode=yes -o ConnectTimeout=8 root@192.168.1.1 'date -u; /etc/init.d/sysntpd status'
+#   -> no route to host / timeout                       (see preflight-reachability.txt §5)
+#   $ ping -c3 -W2 192.168.1.1   -> 100% packet loss
+#   $ ip neigh | grep -i 40:a5:ef -> no match (device not on this LAN)
+#   $ sudo iw dev wlp2s0 scan    -> no 40:a5:ef BSSID (2.4 + 5 GHz)
+#   $ ls /dev/ttyUSB* /dev/ttyACM* -> no serial adapter (no console fallback)
+#
+# ---------------------------------------------------------------------------
+# 4. SIDE-EFFECT DECLARATION
+# ---------------------------------------------------------------------------
+# No config was modified. The only commands issued were read-only probes
+# (ip/route/ping//dev/tcp connects/ip neigh/iw scan/lsusb/date/timedatectl)
+# plus one instructed SSH attempt that never established a session. No uci
+# write, no reboot, no file was written to any device.

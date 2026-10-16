@@ -1,0 +1,438 @@
+conwrt issue #32 â€” CF-WR632AX preflight reachability probe (READ-ONLY)
+=====================================================================
+Captured at: 2026-10-15T09:33:19Z  (2026-10-15 11:33:19 CEST)
+Host: c03rad0r-DQ05proplus   Kernel: 6.17.0-41-generic
+Profile: worker-tollgate   Kanban task: t_f948b651
+Purpose: step 1 of the card â€” confirm the documented connection path to
+the live device. Every command below is read-only. No config was modified.
+
+DOCUMENTED CONNECTION DETAILS (from the repo, not improvised)
+-------------------------------------------------------------
+models/comfast-cf-wr632ax.json:
+  openwrt.default_ip   = "192.168.1.1"
+  openwrt.device       = "comfast,cf-wr632ax"   target mediatek/filogic
+  stock_default_ip     = "192.168.1.1"
+  mac_oui              = ["40:A5:EF"]
+  hardware.uart        = "3.3V 115200 8N1"
+AGENTS.md / docs/gotchas.md:192.168.1.1 = stock/wizard LAN IP;
+AGENTS.md recovery note: 'firstboot, uci revert, failsafe'.
+
+=== [1] ip -brief addr  (does the host even have a bench ethernet path?) ===
+$ ip -brief addr
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp1s0           UP             192.168.2.38/24 
+wlp2s0           UP             192.168.2.32/24 2a01:599:11d:2324:80b6:1d2d:e253:6824/64 2a01:599:11d:2324:2de5:31b4:c838:b55a/64 fe80::bad:dd63:4332:a3c2/64 
+tun-tollgate     UNKNOWN        10.255.255.1/30 fe80::2f0c:ab13:5eb5:e187/64 
+wt0              UNKNOWN        100.90.22.201/16 
+virbr0           DOWN           192.168.122.1/24 
+loomtap-pool-0   DOWN           172.16.0.1/24 
+loomtap-pool-1   DOWN           172.16.0.1/24 
+br-e88aa92c5180  DOWN           172.28.0.1/16 
+docker0          DOWN           172.17.0.1/16 
+br-4443343dabbd  DOWN           172.18.0.1/16 
+br-5e819a5017d4  UP             172.20.0.1/16 fe80::e0bf:56ff:fee2:8e99/64 
+veth658512c@if2  UP             fe80::c40d:bcff:fec4:bbee/64 
+fips0            UNKNOWN        fdb0:bf34:d648:96ac:f65a:3fd6:358:710b/128 fe80::8769:69fc:9370:36f8/64 
+
+=== [2] ip route ===
+$ ip route
+default via 192.168.2.1 dev enp1s0 proto dhcp src 192.168.2.38 metric 100 
+default via 192.168.2.1 dev wlp2s0 proto dhcp src 192.168.2.32 metric 201 
+10.255.255.0/30 dev tun-tollgate proto kernel scope link src 10.255.255.1 
+100.90.0.0/16 dev wt0 proto kernel scope link src 100.90.22.201 
+172.16.0.0/24 dev loomtap-pool-0 proto kernel scope link src 172.16.0.1 linkdown 
+172.16.0.0/24 dev loomtap-pool-1 proto kernel scope link src 172.16.0.1 linkdown 
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown 
+172.18.0.0/16 dev br-4443343dabbd proto kernel scope link src 172.18.0.1 linkdown 
+172.20.0.0/16 dev br-5e819a5017d4 proto kernel scope link src 172.20.0.1 
+172.28.0.0/16 dev br-e88aa92c5180 proto kernel scope link src 172.28.0.1 linkdown 
+192.168.2.0/24 dev enp1s0 proto kernel scope link src 192.168.2.38 metric 100 
+192.168.2.0/24 dev wlp2s0 proto kernel scope link src 192.168.2.32 metric 201 
+192.168.122.0/24 dev virbr0 proto kernel scope link src 192.168.122.1 linkdown 
+
+=== [3] ping the documented device IP (192.168.1.1) ===
+$ ip route get 192.168.1.1
+192.168.1.1 via 192.168.2.1 dev enp1s0 src 192.168.2.38 uid 1000 
+    cache 
+$ ping -c 3 -W 2 192.168.1.1
+PING 192.168.1.1 (192.168.1.1) 56(84) bytes of data.
+
+--- 192.168.1.1 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2038ms
+
+ping exit=1
+
+=== [4] TCP port probes on 192.168.1.1 ===
+  port 22: closed / unreachable
+  port 80: closed / unreachable
+  port 443: closed / unreachable
+  port 53: closed / unreachable
+
+=== [5] instructed SSH action, verbatim target ===
+$ ssh -o BatchMode=yes -o ConnectTimeout=8 root@192.168.1.1 'cat /etc/openwrt_release'
+ssh exit=124
+
+=== [6] ARP/neighbour table: any COMFAST OUI 40:a5:ef? ===
+$ ip neigh | grep -i 40:a5:ef
+  (no match â€” no COMFAST-OUI neighbour known to this host)
+
+=== [7] bounded ICMP sweep of the LAN the host is attached to (192.168.2.0/24) ===
+$ seq 1 254 | xargs -P 64 -I{} sh -c 'ping -c1 -W1 192.168.2.{} >/dev/null && echo 192.168.2.{}'
+192.168.2.1
+192.168.2.13
+192.168.2.14
+192.168.2.15
+192.168.2.19
+192.168.2.20
+192.168.2.25
+192.168.2.26
+192.168.2.28
+192.168.2.29
+192.168.2.30
+192.168.2.32
+192.168.2.33
+192.168.2.34
+192.168.2.36
+192.168.2.37
+192.168.2.38
+  --- ARP entries with a MAC after the sweep (the above list plus neighbours) ---
+    192.168.2.1 e8:8f:6f:df:9e:11
+    192.168.2.10 
+    192.168.2.100 
+    192.168.2.101 
+    192.168.2.102 
+    192.168.2.103 
+    192.168.2.104 
+    192.168.2.105 
+    192.168.2.106 
+    192.168.2.107 
+    192.168.2.108 
+    192.168.2.109 
+    192.168.2.11 
+    192.168.2.110 
+    192.168.2.111 
+    192.168.2.112 
+    192.168.2.113 
+    192.168.2.114 
+    192.168.2.115 
+    192.168.2.116 
+    192.168.2.117 
+    192.168.2.118 
+    192.168.2.119 
+    192.168.2.12 e0:9d:13:7c:fc:aa
+    192.168.2.120 
+    192.168.2.121 
+    192.168.2.122 
+    192.168.2.123 
+    192.168.2.124 
+    192.168.2.125 
+    192.168.2.126 
+    192.168.2.127 
+    192.168.2.128 
+    192.168.2.129 
+    192.168.2.13 6c:6e:07:50:cd:79
+    192.168.2.130 
+    192.168.2.131 
+    192.168.2.132 
+    192.168.2.133 
+    192.168.2.134 
+    192.168.2.135 
+    192.168.2.136 
+    192.168.2.137 
+    192.168.2.138 
+    192.168.2.139 
+    192.168.2.14 94:83:c4:74:d3:03
+    192.168.2.140 
+    192.168.2.141 
+    192.168.2.142 
+    192.168.2.143 
+    192.168.2.144 
+    192.168.2.145 
+    192.168.2.146 
+    192.168.2.147 
+    192.168.2.148 
+    192.168.2.149 
+    192.168.2.15 94:83:c4:d1:57:58
+    192.168.2.150 
+    192.168.2.151 
+    192.168.2.152 
+    192.168.2.153 
+    192.168.2.154 
+    192.168.2.155 
+    192.168.2.156 
+    192.168.2.157 
+    192.168.2.158 
+    192.168.2.159 
+    192.168.2.16 
+    192.168.2.160 
+    192.168.2.161 
+    192.168.2.162 
+    192.168.2.163 
+    192.168.2.164 
+    192.168.2.165 
+    192.168.2.166 
+    192.168.2.167 
+    192.168.2.168 
+    192.168.2.169 
+    192.168.2.17 
+    192.168.2.170 
+    192.168.2.171 
+    192.168.2.172 
+    192.168.2.173 
+    192.168.2.174 
+    192.168.2.175 
+    192.168.2.176 
+    192.168.2.177 
+    192.168.2.178 
+    192.168.2.179 
+    192.168.2.18 
+    192.168.2.180 
+    192.168.2.181 
+    192.168.2.182 
+    192.168.2.183 
+    192.168.2.184 
+    192.168.2.185 
+    192.168.2.186 
+    192.168.2.187 
+    192.168.2.188 
+    192.168.2.189 
+    192.168.2.19 c2:00:d4:66:8d:44
+    192.168.2.190 
+    192.168.2.191 
+    192.168.2.192 
+    192.168.2.193 
+    192.168.2.194 
+    192.168.2.195 
+    192.168.2.196 
+    192.168.2.197 
+    192.168.2.198 
+    192.168.2.199 
+    192.168.2.2 98:5f:41:52:bc:6e
+    192.168.2.20 50:76:af:2f:33:ed
+    192.168.2.200 
+    192.168.2.201 
+    192.168.2.202 
+    192.168.2.203 
+    192.168.2.204 
+    192.168.2.205 
+    192.168.2.206 
+    192.168.2.207 
+    192.168.2.208 
+    192.168.2.209 
+    192.168.2.21 
+    192.168.2.210 
+    192.168.2.211 
+    192.168.2.212 
+    192.168.2.213 
+    192.168.2.214 
+    192.168.2.215 
+    192.168.2.216 
+    192.168.2.217 
+    192.168.2.218 
+    192.168.2.219 
+    192.168.2.22 
+    192.168.2.220 
+    192.168.2.221 
+    192.168.2.222 
+    192.168.2.223 
+    192.168.2.224 
+    192.168.2.225 
+    192.168.2.226 
+    192.168.2.227 
+    192.168.2.228 
+    192.168.2.229 
+    192.168.2.23 
+    192.168.2.230 
+    192.168.2.231 
+    192.168.2.232 
+    192.168.2.233 
+    192.168.2.234 
+    192.168.2.235 
+    192.168.2.236 
+    192.168.2.237 
+    192.168.2.238 
+    192.168.2.239 
+    192.168.2.24 
+    192.168.2.240 
+    192.168.2.241 
+    192.168.2.242 
+    192.168.2.243 
+    192.168.2.244 
+    192.168.2.245 
+    192.168.2.246 
+    192.168.2.247 
+    192.168.2.248 
+    192.168.2.249 
+    192.168.2.25 e8:2a:ea:4e:0e:8f
+    192.168.2.250 
+    192.168.2.251 
+    192.168.2.252 
+    192.168.2.253 
+    192.168.2.254 
+    192.168.2.26 6c:6e:07:50:cd:b5
+    192.168.2.27 
+    192.168.2.28 00:e0:4c:36:04:3e
+    192.168.2.29 0c:ef:15:39:fb:9d
+    192.168.2.3 
+    192.168.2.30 7c:7a:91:86:a1:0f
+    192.168.2.31 
+    192.168.2.33 92:83:c4:8c:59:c2
+    192.168.2.34 d4:f3:2d:d2:18:74
+    192.168.2.35 
+    192.168.2.36 6c:6e:07:50:cd:b5
+    192.168.2.37 0e:86:af:02:6a:d9
+    192.168.2.39 
+    192.168.2.4 
+    192.168.2.40 
+    192.168.2.41 
+    192.168.2.42 
+    192.168.2.43 
+    192.168.2.44 
+    192.168.2.45 
+    192.168.2.46 
+    192.168.2.47 
+    192.168.2.48 
+    192.168.2.49 
+    192.168.2.5 
+    192.168.2.50 
+    192.168.2.51 
+    192.168.2.52 
+    192.168.2.53 
+    192.168.2.54 
+    192.168.2.55 
+    192.168.2.56 
+    192.168.2.57 
+    192.168.2.58 
+    192.168.2.59 
+    192.168.2.6 
+    192.168.2.60 
+    192.168.2.61 
+    192.168.2.62 
+    192.168.2.63 
+    192.168.2.64 
+    192.168.2.65 
+    192.168.2.66 
+    192.168.2.67 
+    192.168.2.68 
+    192.168.2.69 
+    192.168.2.7 
+    192.168.2.70 
+    192.168.2.71 
+    192.168.2.72 
+    192.168.2.73 
+    192.168.2.74 
+    192.168.2.75 
+    192.168.2.76 
+    192.168.2.77 
+    192.168.2.78 
+    192.168.2.79 
+    192.168.2.8 
+    192.168.2.80 
+    192.168.2.81 
+    192.168.2.82 
+    192.168.2.83 
+    192.168.2.84 
+    192.168.2.85 
+    192.168.2.86 
+    192.168.2.87 
+    192.168.2.88 
+    192.168.2.89 
+    192.168.2.9 
+    192.168.2.90 
+    192.168.2.91 
+    192.168.2.92 
+    192.168.2.93 
+    192.168.2.94 
+    192.168.2.95 
+    192.168.2.96 
+    192.168.2.97 
+    192.168.2.98 
+    192.168.2.99 
+  --- COMFAST OUI check after sweep ---
+    (no 40:a5:ef â€” device not present on this LAN)
+
+=== [8] WiFi scan for a COMFAST-OUI beacon (2.4 + 5 GHz) ===
+$ sudo -n iw dev wlp2s0 scan | grep -E '^BSS|SSID:'
+BSS 94:83:c4:d1:57:5a(on wlp2s0)
+	SSID: TollGate-A04E
+BSS 96:83:c4:d1:57:5a(on wlp2s0)
+	SSID: c08r4d0r-A04E
+BSS 96:83:c4:74:d3:03(on wlp2s0)
+	SSID: c08r4d0r-52BE
+BSS e8:8f:6f:df:9e:11(on wlp2s0) -- associated
+	SSID: EnterSSID-5GHz
+BSS e8:8f:6f:e7:db:84(on wlp2s0)
+	SSID: EnterSSID-2.4GHz
+BSS 94:83:c4:74:d3:05(on wlp2s0)
+	SSID: !TollGate-52BE
+BSS 94:83:c4:74:d3:03(on wlp2s0)
+	SSID: !TollGate-52BE
+BSS 94:83:c4:d1:57:59(on wlp2s0)
+	SSID: TollGate-A04E
+BSS 96:83:c4:d1:57:59(on wlp2s0)
+	SSID: c08r4d0r-A04E
+BSS 96:83:c4:74:d3:05(on wlp2s0)
+	SSID: c08r4d0r-52BE
+BSS 96:83:c4:8c:59:c4(on wlp2s0)
+	SSID: c08r4d0r-B671
+BSS 94:83:c4:8c:59:c2(on wlp2s0)
+	SSID: !TollGate-B671
+BSS 96:83:c4:8c:59:c2(on wlp2s0)
+	SSID: c08r4d0r-B671
+
+=== [9] serial-console fallback: is a USB-serial adapter attached? ===
+$ ls -la /dev/ttyUSB* /dev/ttyACM* /dev/serial
+ls: cannot access '/dev/ttyUSB*': No such file or directory
+ls: cannot access '/dev/ttyACM*': No such file or directory
+ls: cannot access '/dev/serial': No such file or directory
+$ lsusb
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 003 Device 002: ID 0bda:b850 Realtek Semiconductor Corp. Bluetooth Radio
+Bus 003 Device 003: ID 21c4:0004 Lexar                ES4                 
+Bus 003 Device 004: ID 0573:1573 Zoran Co. Personal Media Division (Nogatech) USB Audio and HID
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+
+=== [10] managed-overlay path (netbird) â€” any OpenWrt peer reachable? ===
+$ netbird status | head -12
+OS: linux/amd64
+Daemon version: 0.66.3
+CLI version: 0.66.3
+Profile: default
+Management: Connected
+Signal: Connected
+Relays: 4/4 Available
+Nameservers: 1/1 Available
+FQDN: c03rad0r-dq05proplus.netbird.cloud
+NetBird IP: 100.90.22.201/16
+Interface type: Kernel
+Quantum resistance: false
+  --- SSH banner grab on the Connected peers (port 22) ---
+    100.90.54.106 -> SSH-2.0-dropbeartçáðòj:;³ªâ§N©¦Ã
+    100.90.64.208 -> SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.1
+    100.90.84.147 -> SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.2
+    100.90.101.9 -> SSH-2.0-OpenSSH_10.2p1 Ubuntu-2ubuntu3.8
+    100.90.132.247 -> <no banner / timeout>
+  Only 100.90.54.106 (peer 'openwrt.netbird.cloud') speaks dropbear:
+  $ ssh -i ~/.ssh/id_fleet root@100.90.54.106 'cat /etc/openwrt_release'
+Warning: Permanently added '100.90.54.106' (ED25519) to the list of known hosts.
+  -> no documented credential exists for that peer; it is NOT identified as
+     the CF-WR632AX and the card forbids improvising access.
+
+=== [11] HOST-SIDE CLOCK REFERENCE (only clock evidence obtainable today) ===
+$ date -u
+Thu Oct 15 09:34:12 UTC 2026
+$ timedatectl
+               Local time: Thu 2026-10-15 11:34:13 CEST
+           Universal time: Thu 2026-10-15 09:34:13 UTC
+                 RTC time: Thu 2026-10-15 09:34:13
+                Time zone: Europe/Berlin (CEST, +0200)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+
+=== VERDICT ===
+UNREACHABLE. No documented connection path to the CF-WR632AX is live from
+this host. No device-side output (uci export, date -u, NTP status, or any
+recovery prompt) could be captured. No config was modified.
