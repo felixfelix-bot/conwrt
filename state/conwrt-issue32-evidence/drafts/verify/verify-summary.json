@@ -1,0 +1,556 @@
+{
+  "sha256": "3b1f047be5e7495f75c3af42c86bcfba2d3e0491ddf17f5ec670600d8ed25f39",
+  "bytes": 619242,
+  "generated_at": "2026-06-23 16:11 UTC",
+  "versions": [
+    "24.10.7",
+    "25.12.4"
+  ],
+  "n_models": 22,
+  "n_flows": 2,
+  "n_recipes": 86,
+  "n_guarded": 2,
+  "n_readback": 2,
+  "n_literal_noreadback": 84,
+  "guarded": [
+    {
+      "model": "comfast-cf-wr632ax",
+      "flow": "net4sats",
+      "version": "25.12.4"
+    },
+    {
+      "model": "comfast-cf-wr632ax",
+      "flow": "tollgate",
+      "version": "25.12.4"
+    }
+  ],
+  "distinct_literals": {
+    "10.231.9.1": 4,
+    "10.89.4.1": 4,
+    "10.47.217.1": 4,
+    "10.135.117.1": 4,
+    "10.193.202.1": 4,
+    "10.64.224.1": 4,
+    "10.107.186.1": 4,
+    "10.230.236.1": 4,
+    "10.230.237.1": 4,
+    "10.36.125.1": 4,
+    "10.12.100.1": 4,
+    "10.61.168.1": 4,
+    "10.141.185.1": 4,
+    "10.78.162.1": 4,
+    "10.13.237.1": 4,
+    "10.44.172.1": 4,
+    "10.172.177.1": 4,
+    "10.47.149.1": 4,
+    "10.213.244.1": 4,
+    "10.63.178.1": 4,
+    "10.220.129.1": 4
+  },
+  "literal_rows": [
+    {
+      "model": "asus-lyra-map-ac2200",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.231.9.1"
+    },
+    {
+      "model": "asus-lyra-map-ac2200",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.231.9.1"
+    },
+    {
+      "model": "asus-lyra-map-ac2200",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.231.9.1"
+    },
+    {
+      "model": "asus-lyra-map-ac2200",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.231.9.1"
+    },
+    {
+      "model": "dlink-covr-x1860-a1",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.89.4.1"
+    },
+    {
+      "model": "dlink-covr-x1860-a1",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.89.4.1"
+    },
+    {
+      "model": "dlink-covr-x1860-a1",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.89.4.1"
+    },
+    {
+      "model": "dlink-covr-x1860-a1",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.89.4.1"
+    },
+    {
+      "model": "extreme-networks-ws-ap3915i",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.47.217.1"
+    },
+    {
+      "model": "extreme-networks-ws-ap3915i",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.47.217.1"
+    },
+    {
+      "model": "extreme-networks-ws-ap3915i",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.47.217.1"
+    },
+    {
+      "model": "extreme-networks-ws-ap3915i",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.47.217.1"
+    },
+    {
+      "model": "glinet-gl-ar150",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.135.117.1"
+    },
+    {
+      "model": "glinet-gl-ar150",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.135.117.1"
+    },
+    {
+      "model": "glinet-gl-ar150",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.135.117.1"
+    },
+    {
+      "model": "glinet-gl-ar150",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.135.117.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-lite",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.193.202.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-lite",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.193.202.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-lite",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.193.202.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-lite",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.193.202.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-nand",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.64.224.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-nand",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.64.224.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-nand",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.64.224.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-nand",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.64.224.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-nor",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.107.186.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-nor",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.107.186.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-nor",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.107.186.1"
+    },
+    {
+      "model": "glinet-gl-ar300m-nor",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.107.186.1"
+    },
+    {
+      "model": "glinet-mt3000",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.230.236.1"
+    },
+    {
+      "model": "glinet-mt3000",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.230.236.1"
+    },
+    {
+      "model": "glinet-mt3000",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.230.236.1"
+    },
+    {
+      "model": "glinet-mt3000",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.230.236.1"
+    },
+    {
+      "model": "glinet-mt6000",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.230.237.1"
+    },
+    {
+      "model": "glinet-mt6000",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.230.237.1"
+    },
+    {
+      "model": "glinet-mt6000",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.230.237.1"
+    },
+    {
+      "model": "glinet-mt6000",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.230.237.1"
+    },
+    {
+      "model": "linksys-mx4200-v1",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.36.125.1"
+    },
+    {
+      "model": "linksys-mx4200-v1",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.36.125.1"
+    },
+    {
+      "model": "linksys-mx4200-v1",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.36.125.1"
+    },
+    {
+      "model": "linksys-mx4200-v1",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.36.125.1"
+    },
+    {
+      "model": "linksys-whw03-v1",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.12.100.1"
+    },
+    {
+      "model": "linksys-whw03-v1",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.12.100.1"
+    },
+    {
+      "model": "linksys-whw03-v1",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.12.100.1"
+    },
+    {
+      "model": "linksys-whw03-v1",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.12.100.1"
+    },
+    {
+      "model": "linksys-whw03-v2",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.61.168.1"
+    },
+    {
+      "model": "linksys-whw03-v2",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.61.168.1"
+    },
+    {
+      "model": "linksys-whw03-v2",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.61.168.1"
+    },
+    {
+      "model": "linksys-whw03-v2",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.61.168.1"
+    },
+    {
+      "model": "ubnt-edgerouter-6p",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.141.185.1"
+    },
+    {
+      "model": "ubnt-edgerouter-6p",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.141.185.1"
+    },
+    {
+      "model": "ubnt-edgerouter-6p",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.141.185.1"
+    },
+    {
+      "model": "ubnt-edgerouter-6p",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.141.185.1"
+    },
+    {
+      "model": "ubnt-edgerouter-x",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.78.162.1"
+    },
+    {
+      "model": "ubnt-edgerouter-x",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.78.162.1"
+    },
+    {
+      "model": "ubnt-edgerouter-x",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.78.162.1"
+    },
+    {
+      "model": "ubnt-edgerouter-x",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.78.162.1"
+    },
+    {
+      "model": "zyxel-ex5700-telenor",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.13.237.1"
+    },
+    {
+      "model": "zyxel-ex5700-telenor",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.13.237.1"
+    },
+    {
+      "model": "zyxel-ex5700-telenor",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.13.237.1"
+    },
+    {
+      "model": "zyxel-ex5700-telenor",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.13.237.1"
+    },
+    {
+      "model": "zyxel-gs1900-24e",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.44.172.1"
+    },
+    {
+      "model": "zyxel-gs1900-24e",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.44.172.1"
+    },
+    {
+      "model": "zyxel-gs1900-24e",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.44.172.1"
+    },
+    {
+      "model": "zyxel-gs1900-24e",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.44.172.1"
+    },
+    {
+      "model": "zyxel-gs1900-8hp-a1",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.172.177.1"
+    },
+    {
+      "model": "zyxel-gs1900-8hp-a1",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.172.177.1"
+    },
+    {
+      "model": "zyxel-gs1900-8hp-a1",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.172.177.1"
+    },
+    {
+      "model": "zyxel-gs1900-8hp-a1",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.172.177.1"
+    },
+    {
+      "model": "zyxel-gs1900-8hp-b1",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.47.149.1"
+    },
+    {
+      "model": "zyxel-gs1900-8hp-b1",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.47.149.1"
+    },
+    {
+      "model": "zyxel-gs1900-8hp-b1",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.47.149.1"
+    },
+    {
+      "model": "zyxel-gs1900-8hp-b1",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.47.149.1"
+    },
+    {
+      "model": "zyxel-gs1920-24",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.213.244.1"
+    },
+    {
+      "model": "zyxel-gs1920-24",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.213.244.1"
+    },
+    {
+      "model": "zyxel-gs1920-24",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.213.244.1"
+    },
+    {
+      "model": "zyxel-gs1920-24",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.213.244.1"
+    },
+    {
+      "model": "zyxel-nr7101",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.63.178.1"
+    },
+    {
+      "model": "zyxel-nr7101",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.63.178.1"
+    },
+    {
+      "model": "zyxel-nr7101",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.63.178.1"
+    },
+    {
+      "model": "zyxel-nr7101",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.63.178.1"
+    },
+    {
+      "model": "zyxel-wx5600-t0",
+      "flow": "net4sats",
+      "version": "24.10.7",
+      "literal": "10.220.129.1"
+    },
+    {
+      "model": "zyxel-wx5600-t0",
+      "flow": "net4sats",
+      "version": "25.12.4",
+      "literal": "10.220.129.1"
+    },
+    {
+      "model": "zyxel-wx5600-t0",
+      "flow": "tollgate",
+      "version": "24.10.7",
+      "literal": "10.220.129.1"
+    },
+    {
+      "model": "zyxel-wx5600-t0",
+      "flow": "tollgate",
+      "version": "25.12.4",
+      "literal": "10.220.129.1"
+    }
+  ]
+}
